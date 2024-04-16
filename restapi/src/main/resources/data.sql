@@ -1,0 +1,1 @@
+INSERT INTO `post` (`id`, `title`, `contentF`) VALUES (1, 'Test mmpost 1', 'Content 1');
