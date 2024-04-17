@@ -7,6 +7,7 @@ import mc.project1.restapi.model.Post;
 import mc.project1.restapi.repository.CommentRepository;
 import mc.project1.restapi.repository.PostRepository;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.lang.invoke.CallSite;
@@ -24,9 +25,15 @@ public class PostService
         this.commentRepository = commentRepository;
     }
 
-    public List<PostDto> getPosts(int pageNumber)
+    public List<PostDto> getPosts(int pageNumber, Sort.Direction sort)
     {
-        List<Post> posts = postRepository.findAllPosts(PageRequest.of(pageNumber, 20));
+        List<Post> posts = postRepository.findAllPosts(
+                PageRequest.of(
+                        pageNumber,
+                        20,
+                        Sort.by(sort, "id")
+                )
+        );
 
         return PostDtoMapper.mapToPostDtos(posts);
     }
@@ -37,9 +44,15 @@ public class PostService
                 .orElseThrow();
     }
 
-    public List<Post> getPostsWithComments(int pageNumber)
+    public List<Post> getPostsWithComments(int pageNumber, Sort.Direction sort)
     {
-        List<Post> posts = postRepository.findAllPosts(PageRequest.of(pageNumber, 20));
+        List<Post> posts = postRepository.findAllPosts(
+                PageRequest.of(
+                        pageNumber,
+                        20,
+                        Sort.by(sort, "id")
+                )
+        );
 
         List<Long> postsIds = posts.stream()
                 .map(Post::getId)

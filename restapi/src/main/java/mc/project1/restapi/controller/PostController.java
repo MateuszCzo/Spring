@@ -5,6 +5,7 @@ import mc.project1.restapi.dto.PostDto;
 import mc.project1.restapi.model.Post;
 import mc.project1.restapi.service.PostService;
 import org.hibernate.engine.internal.Collections;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,19 +24,19 @@ public class PostController
     }
 
     @GetMapping("/posts")
-    public List<PostDto> getPosts(@RequestParam(required = false) int page)
+    public List<PostDto> getPosts(@RequestParam(required = false) int page, Sort.Direction sort)
     {
         int pageNumber = page >= 0 ? page : 0;
 
-        return postService.getPosts(pageNumber);
+        return postService.getPosts(pageNumber, sort);
     }
 
     @GetMapping("/posts/comments")
-    public List<Post> getPostsWithComments(@RequestParam(required = false) int page)
+    public List<Post> getPostsWithComments(@RequestParam(required = false) int page, Sort.Direction sort)
     {
         int pageNumber = page >= 0 ? page : 0;
 
-        return postService.getPostsWithComments(pageNumber);
+        return postService.getPostsWithComments(pageNumber, sort);
     }
 
     @GetMapping("/posts/{id}")
