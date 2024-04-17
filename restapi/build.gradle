@@ -47,13 +47,13 @@ task generatePostsAndComments() {
 		File dataSql = file("src/main/resources/data.sql")
 		dataSql.write("")
 		for (int i = 1; i <= 100; i++) {
-			dataSql.append("insert into post(id, title, content, created) " +
-			 "values (${i}, 'Test post ${i},', 'Content ${i}', '" + LocalDateTime.now().minusDays(100 - i) + "');\n")
+			dataSql.append("insert into post(title, content, created) " +
+			 "values ('Test post ${i},', 'Content ${i}', '" + LocalDateTime.now().minusDays(100 - i) + "');\n")
 		}
 		for (int i = 1; i <= 100; i++) {
 			int postId = 1 + i / 10;
-			dataSql.append("insert into comment(id, post_id, content, created) " +
-				"values (${i}, ${postId}, 'Comment ${i}', '" + LocalDateTime.now().minusDays(100 - i) + "');\n")
+			dataSql.append("insert into comment(post_id, content, created) " +
+				"values (${postId}, 'Comment ${i}', '" + LocalDateTime.now().minusDays(100 - i) + "');\n")
 		}
 	}
 }

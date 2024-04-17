@@ -1,18 +1,12 @@
 package mc.project1.restapi.controller;
 
-import lombok.RequiredArgsConstructor;
 import mc.project1.restapi.dto.PostDto;
 import mc.project1.restapi.model.Post;
 import mc.project1.restapi.service.PostService;
-import org.hibernate.engine.internal.Collections;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 public class PostController
@@ -24,24 +18,44 @@ public class PostController
     }
 
     @GetMapping("/posts")
-    public List<PostDto> getPosts(@RequestParam(required = false) int page, Sort.Direction sort)
+    public List<PostDto> getPosts(@RequestParam(required = false) Integer page, Sort.Direction sort)
     {
-        int pageNumber = page >= 0 ? page : 0;
+        page = page != null && page >= 0 ? page : 0;
+        sort = sort != null ? sort : Sort.Direction.ASC;
 
-        return postService.getPosts(pageNumber, sort);
+        return postService.getPosts(page, sort);
     }
 
     @GetMapping("/posts/comments")
-    public List<Post> getPostsWithComments(@RequestParam(required = false) int page, Sort.Direction sort)
+    public List<Post> getPostsWithComments(@RequestParam(required = false) Integer page, Sort.Direction sort)
     {
-        int pageNumber = page >= 0 ? page : 0;
+        page = page != null && page >= 0 ? page : 0;
+        sort = sort != null ? sort : Sort.Direction.ASC;
 
-        return postService.getPostsWithComments(pageNumber, sort);
+        return postService.getPostsWithComments(page, sort);
     }
 
     @GetMapping("/posts/{id}")
     public Post getPost(@PathVariable Long id)
     {
         return postService.getPost(id);
+    }
+
+    @PostMapping("/posts")
+    public Post addPost(@RequestBody Post post)
+    {
+        return postService.addPost(post);
+    }
+
+    @PutMapping("/posts")
+    public Post editPost(@RequestBody Post post)
+    {
+        return postService.editPost(post);
+    }
+
+    @DeleteMapping("/posts/{id}")
+    public void deletePost(@PathVariable Long id)
+    {
+        postService.deletePost(id);
     }
 }

@@ -1,5 +1,6 @@
 package mc.project1.restapi.service;
 
+import jakarta.transaction.Transactional;
 import mc.project1.restapi.dto.PostDto;
 import mc.project1.restapi.mapper.PostDtoMapper;
 import mc.project1.restapi.model.Comment;
@@ -10,8 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.lang.invoke.CallSite;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,5 +71,32 @@ public class PostService
         return comments.stream()
                 .filter(comment -> comment.getPostId() == postId)
                 .collect(Collectors.toList());
+    }
+
+    public Post addPost(Post post)
+    {
+        return postRepository.save(post);
+    }
+
+    @Transactional
+    public Post editPost(Post post)
+    {
+        Post postEdited = postRepository.findById(post.getId())
+                .orElseThrow();
+
+        postEdited.setContent(post.getContent());
+        postEdited.setTitle(post.getTitle());
+
+        return postEdited;
+    }
+
+    @Transactional
+    public void deletePost(Long id)
+    {
+        List<Comment> comments =  commentRepository.findAllByPostId(id);
+
+        commentRepository.deleteAllInBatch(comments);
+
+        postRepository.deleteById(id);
     }
 }
