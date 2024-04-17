@@ -30,6 +30,14 @@ public class PostController
         return postService.getPosts(pageNumber);
     }
 
+    @GetMapping("/posts/comments")
+    public List<Post> getPostsWithComments(@RequestParam(required = false) int page)
+    {
+        int pageNumber = page >= 0 ? page : 0;
+
+        return postService.getPostsWithComments(pageNumber);
+    }
+
     @GetMapping("/posts/{id}")
     public Post getPost(@PathVariable Long id)
     {
