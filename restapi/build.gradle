@@ -59,5 +59,13 @@ task generatePostsAndComments() {
 			dataSql.append("insert into comment(post_id, content, created) " +
 				"values (${postId}, 'Comment ${i}', '" + LocalDateTime.now().minusDays(100 - i) + "');\n")
 		}
+		dataSql.append("insert into authority(authority) " +
+				"values ('USER_ROLE');\n");
+		dataSql.append("insert into authority(authority) " +
+				"values ('ADMIN_ROLE');\n");
+		dataSql.append("insert into user_table(password, username, account_non_expired, account_non_locked, credentials_non_expired, enabled) " +
+				"values ('password', 'user@user.com', 1, 1, 1, 1);\n");
+		dataSql.append("insert into user_authority(user_id, authority_id) " +
+				"values (1, 1);\n");
 	}
 }

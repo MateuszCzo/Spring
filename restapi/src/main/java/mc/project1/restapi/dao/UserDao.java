@@ -10,6 +10,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * @deprecated
+ * Use UserRepository instead
+ */
+@Deprecated
 @Repository
 public class UserDao
 {

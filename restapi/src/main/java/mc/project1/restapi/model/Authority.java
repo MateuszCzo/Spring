@@ -4,20 +4,18 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.time.LocalDateTime;
+import org.springframework.security.core.GrantedAuthority;
 
 @Entity
-@Getter
-@Setter
-public class Comment
+public class Authority implements GrantedAuthority
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private long postId;
-    private String content;
-    private LocalDateTime created;
+    private String authority;
+
+    @Override
+    public String getAuthority() {
+        return authority;
+    }
 }

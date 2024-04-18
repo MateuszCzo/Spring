@@ -1,11 +1,15 @@
 package mc.project1.restapi.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 public class Post
 {
     @Id
@@ -17,44 +21,4 @@ public class Post
     @OneToMany
     @JoinColumn(name = "postId", updatable = false, insertable = false)
     private List<Comment> comments;
-
-    public long getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setComments(List<Comment> comments) {
-        this.comments = comments;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public LocalDateTime getCreated() {
-        return created;
-    }
-
-    public List<Comment> getComments() {
-        return comments;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public void setCreated(LocalDateTime created) {
-        this.created = created;
-    }
 }
