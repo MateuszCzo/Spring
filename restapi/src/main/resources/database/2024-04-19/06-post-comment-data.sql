@@ -1,3 +1,5 @@
+--liquibase formatted sql
+--changeset mczosnyka:1
 insert into post(title, content, created) values ('Test post 1,', 'Content 1', '2024-01-10T22:51:41.881003100');
 insert into post(title, content, created) values ('Test post 2,', 'Content 2', '2024-01-11T22:51:41.902150700');
 insert into post(title, content, created) values ('Test post 3,', 'Content 3', '2024-01-12T22:51:41.903154400');
@@ -198,7 +200,3 @@ insert into comment(post_id, content, created) values (10, 'Comment 97', '2024-0
 insert into comment(post_id, content, created) values (10, 'Comment 98', '2024-04-16T22:51:42.104738200');
 insert into comment(post_id, content, created) values (10, 'Comment 99', '2024-04-17T22:51:42.105741800');
 insert into comment(post_id, content, created) values (11, 'Comment 100', '2024-04-18T22:51:42.105741800');
-insert into authority(authority) values ('USER_ROLE');
-insert into authority(authority) values ('ADMIN_ROLE');
-insert into user_table(password, username, account_non_expired, account_non_locked, credentials_non_expired, enabled) values ('password', 'user@user.com', 1, 1, 1, 1);
-insert into user_authority(user_id, authority_id) values (1, 1);
