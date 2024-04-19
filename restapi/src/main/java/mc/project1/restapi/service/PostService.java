@@ -7,7 +7,8 @@ import mc.project1.restapi.model.Comment;
 import mc.project1.restapi.model.Post;
 import mc.project1.restapi.repository.CommentRepository;
 import mc.project1.restapi.repository.PostRepository;
-import org.hibernate.LazyInitializationException;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -48,6 +49,7 @@ public class PostService
                 .orElseThrow();
     }
 
+    @Transactional
     @Cacheable(cacheNames = "PostsWithComments"/*, key = "#page"*/)
     public List<Post> getPostsWithComments(int pageNumber, Sort.Direction sort)
     {
@@ -83,6 +85,7 @@ public class PostService
     }
 
     @Transactional
+    @CachePut(cacheNames = "Post", key = "#result.id")
     public Post editPost(Post post)
     {
         Post postEdited = postRepository.findById(post.getId())
@@ -95,6 +98,7 @@ public class PostService
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "POST")
     public void deletePost(Long id)
     {
         List<Comment> comments =  commentRepository.findAllByPostId(id);
@@ -103,4 +107,7 @@ public class PostService
 
         postRepository.deleteById(id);
     }
+
+    @CacheEvict(cacheNames = "PostsWithComments")
+    public void clearPostsWithComments() {}
 }
