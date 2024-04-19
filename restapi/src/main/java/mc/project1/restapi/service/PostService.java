@@ -7,6 +7,8 @@ import mc.project1.restapi.model.Comment;
 import mc.project1.restapi.model.Post;
 import mc.project1.restapi.repository.CommentRepository;
 import mc.project1.restapi.repository.PostRepository;
+import org.hibernate.LazyInitializationException;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 public class PostService
 {
+    public static final int PAGE_SIZE = 20;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
 
@@ -30,7 +33,7 @@ public class PostService
         List<Post> posts = postRepository.findAllPosts(
                 PageRequest.of(
                         pageNumber,
-                        20,
+                        PAGE_SIZE,
                         Sort.by(sort, "id")
                 )
         );
@@ -38,18 +41,20 @@ public class PostService
         return PostDtoMapper.mapToPostDtos(posts);
     }
 
+    @Cacheable(cacheNames = "Post", key = "#id")
     public Post getPost(Long id)
     {
         return postRepository.findById(id)
                 .orElseThrow();
     }
 
+    @Cacheable(cacheNames = "PostsWithComments"/*, key = "#page"*/)
     public List<Post> getPostsWithComments(int pageNumber, Sort.Direction sort)
     {
         List<Post> posts = postRepository.findAllPosts(
                 PageRequest.of(
                         pageNumber,
-                        20,
+                        PAGE_SIZE,
                         Sort.by(sort, "id")
                 )
         );
