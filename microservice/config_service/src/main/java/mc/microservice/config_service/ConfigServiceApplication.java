@@ -1,17 +1,17 @@
-package mc.microservice.api_gateway;
+package mc.microservice.config_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
+import org.springframework.cloud.config.server.EnableConfigServer;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableZuulProxy
-public class ApiGatewayApplication {
+@EnableConfigServer
+public class ConfigServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ApiGatewayApplication.class, args);
+		SpringApplication.run(ConfigServiceApplication.class, args);
 	}
 
 }
