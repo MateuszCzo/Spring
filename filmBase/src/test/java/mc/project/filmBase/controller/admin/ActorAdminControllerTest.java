@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class ActorControllerTest {
+class ActorAdminControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -89,9 +89,9 @@ class ActorControllerTest {
                 .andReturn();
 
         // Then
-        Collection<Actor> responseActors = objectMapper.readValue(
+        Collection<ActorResponse> responseActors = objectMapper.readValue(
                 mvcResult.getResponse().getContentAsString(),
-                new TypeReference<Collection<Actor>>() {}
+                new TypeReference<Collection<ActorResponse>>() {}
         );
 
         assertNotEquals(responseActors.size(), 0);

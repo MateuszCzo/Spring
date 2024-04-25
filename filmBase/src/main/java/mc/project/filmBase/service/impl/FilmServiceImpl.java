@@ -15,7 +15,8 @@ import mc.project.filmBase.model.Rating;
 import mc.project.filmBase.repository.ActorRepository;
 import mc.project.filmBase.repository.FilmRepository;
 import mc.project.filmBase.repository.RatingRepository;
-import mc.project.filmBase.service.FilmManipulationService;
+import mc.project.filmBase.service.admin.FilmAdminService;
+import mc.project.filmBase.service.front.FilmFrontService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,7 @@ import java.util.Collection;
 
 @Service
 @RequiredArgsConstructor
-public class FilmServiceImpl implements FilmManipulationService {
+public class FilmServiceImpl implements FilmAdminService, FilmFrontService {
     public static final int PAGE_SIZE = 20;
 
     private final FilmRepository filmRepository;

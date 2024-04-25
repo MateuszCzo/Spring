@@ -1,4 +1,4 @@
-package mc.project.filmBase.service;
+package mc.project.filmBase.service.admin;
 
 import mc.project.filmBase.dto.request.ActorRequest;
 import mc.project.filmBase.dto.response.ActorResponse;
@@ -6,7 +6,7 @@ import mc.project.filmBase.dto.response.FilmResponse;
 
 import java.util.Collection;
 
-public interface ActorManipulationService {
+public interface ActorAdminService {
     public ActorResponse get(long id);
 
     public Collection<ActorResponse> getPage(int page);

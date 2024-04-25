@@ -11,8 +11,8 @@ import mc.project.filmBase.model.Actor;
 import mc.project.filmBase.model.Film;
 import mc.project.filmBase.repository.ActorRepository;
 import mc.project.filmBase.repository.FilmRepository;
-import mc.project.filmBase.service.ActorManipulationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import mc.project.filmBase.service.admin.ActorAdminService;
+import mc.project.filmBase.service.front.ActorFrontService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ import java.util.Collection;
 
 @Service
 @RequiredArgsConstructor
-public class ActorServiceImpl implements ActorManipulationService {
+public class ActorServiceImpl implements ActorAdminService, ActorFrontService {
     public static final int PAGE_SIZE = 20;
 
     private final ActorRepository actorRepository;

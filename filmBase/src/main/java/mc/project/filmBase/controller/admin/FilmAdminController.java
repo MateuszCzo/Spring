@@ -5,7 +5,7 @@ import mc.project.filmBase.dto.request.FilmRequest;
 import mc.project.filmBase.dto.response.ActorResponse;
 import mc.project.filmBase.dto.response.FilmResponse;
 import mc.project.filmBase.dto.response.RatingResponse;
-import mc.project.filmBase.service.FilmManipulationService;
+import mc.project.filmBase.service.admin.FilmAdminService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -13,41 +13,41 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/admin/film")
 @RequiredArgsConstructor
-public class FilmController {
-    private final FilmManipulationService filmManipulationService;
+public class FilmAdminController {
+    private final FilmAdminService filmService;
 
     @GetMapping("/{id}")
     public FilmResponse getFilm(@PathVariable(name = "id") long id) {
-        return filmManipulationService.get(id);
+        return filmService.get(id);
     }
 
     @GetMapping
     public Collection<FilmResponse> getPage(@RequestParam(name = "page", defaultValue = "0") int page) {
-        return filmManipulationService.getPage(page);
+        return filmService.getPage(page);
     }
 
     @PostMapping
     public FilmResponse addFilm(@RequestBody FilmRequest filmRequest) {
-        return filmManipulationService.add(filmRequest);
+        return filmService.add(filmRequest);
     }
 
     @DeleteMapping("/{id}")
     public void deleteFilm(@PathVariable(name = "id") long id) {
-        filmManipulationService.delete(id);
+        filmService.delete(id);
     }
 
     @PutMapping
     public FilmResponse updateFilm(@RequestBody FilmRequest filmRequest) {
-        return filmManipulationService.update(filmRequest);
+        return filmService.update(filmRequest);
     }
 
     @GetMapping("/{id}/actors")
     public Collection<ActorResponse> getActors(@PathVariable(name = "id") long id) {
-        return filmManipulationService.getActors(id);
+        return filmService.getActors(id);
     }
 
     @GetMapping("{id}/ratings")
     public Collection<RatingResponse> getRatings(@PathVariable(name = "id") long id) {
-        return filmManipulationService.getRatings(id);
+        return filmService.getRatings(id);
     }
 }
