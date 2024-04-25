@@ -42,12 +42,12 @@ public class FilmAdminController {
     }
 
     @GetMapping("/{id}/actors")
-    public Collection<ActorResponse> getActors(@PathVariable(name = "id") long id) {
-        return filmService.getActors(id);
+    public Collection<ActorResponse> getActors(@PathVariable(name = "id") long id, @RequestParam(name = "page", defaultValue = "0") int page) {
+        return filmService.getActors(id, page);
     }
 
     @GetMapping("{id}/ratings")
-    public Collection<RatingResponse> getRatings(@PathVariable(name = "id") long id) {
-        return filmService.getRatings(id);
+    public Collection<RatingResponse> getRatings(@PathVariable(name = "id") long id, @RequestParam(name = "page", defaultValue = "0") int page) {
+        return filmService.getRatings(id, page);
     }
 }

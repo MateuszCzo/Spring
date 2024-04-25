@@ -8,7 +8,7 @@ import mc.project.filmBase.service.front.RatingFrontService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping
+@RequestMapping("/rating")
 @RequiredArgsConstructor
 public class RatingFrontController {
     private final RatingFrontService ratingService;

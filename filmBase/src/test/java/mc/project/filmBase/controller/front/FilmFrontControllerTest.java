@@ -2,6 +2,7 @@ package mc.project.filmBase.controller.front;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import mc.project.filmBase.dto.response.ActorResponse;
 import mc.project.filmBase.dto.response.FilmResponse;
 import mc.project.filmBase.dto.response.RatingResponse;
@@ -44,6 +45,7 @@ class FilmFrontControllerTest {
     private RatingRepository ratingRepository;
 
     @Test
+    @Transactional
     void getFilm() throws Exception {
         // Given
         Film film = Film.builder()
@@ -73,6 +75,7 @@ class FilmFrontControllerTest {
     }
 
     @Test
+    @Transactional
     void getDefaultPage() throws Exception {
         // Given
         Film film = Film.builder()
@@ -98,6 +101,7 @@ class FilmFrontControllerTest {
     }
 
     @Test
+    @Transactional
     void getActors() throws Exception {
         // Given
         Actor actor = Actor.builder()
@@ -137,6 +141,7 @@ class FilmFrontControllerTest {
     }
 
     @Test
+    @Transactional
     void getRatings() throws Exception {
         // Given
         Film film = Film.builder()

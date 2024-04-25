@@ -11,7 +11,7 @@ public interface FilmFrontService {
 
     public Collection<FilmResponse> getPage(int page);
 
-    public Collection<ActorResponse> getActors(long id);
+    public Collection<ActorResponse> getActors(long id, int page);
 
-    public Collection<RatingResponse> getRatings(long id);
+    public Collection<RatingResponse> getConfirmedRatings(long id, int page);
 }

@@ -10,5 +10,5 @@ public interface ActorFrontService {
 
     public Collection<ActorResponse> getPage(int page);
 
-    public Collection<FilmResponse> getFilms(long id);
+    public Collection<FilmResponse> getFilms(long id, int page);
 }

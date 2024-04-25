@@ -41,7 +41,7 @@ public class ActorAdminController {
     }
 
     @GetMapping("/{id}/films")
-    public Collection<FilmResponse> getFilms(@PathVariable(name = "id") long id) {
-        return actorService.getFilms(id);
+    public Collection<FilmResponse> getFilms(@PathVariable(name = "id") long id, @RequestParam(name = "page", defaultValue = "0") int page) {
+        return actorService.getFilms(id, page);
     }
 }

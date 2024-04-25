@@ -25,7 +25,7 @@ public class ActorFrontController {
     }
 
     @GetMapping("/{id}/films")
-    public Collection<FilmResponse> getFilms(@PathVariable("id") long id) {
-        return actorService.getFilms(id);
+    public Collection<FilmResponse> getFilms(@PathVariable("id") long id, @RequestParam(name = "page", defaultValue = "0") int page) {
+        return actorService.getFilms(id, page);
     }
 }

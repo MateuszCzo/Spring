@@ -18,7 +18,7 @@ public interface FilmAdminService {
 
     public FilmResponse update(FilmRequest filmRequest);
 
-    public Collection<ActorResponse> getActors(long id);
+    public Collection<ActorResponse> getActors(long id, int page);
 
-    public Collection<RatingResponse> getRatings(long id);
+    public Collection<RatingResponse> getRatings(long id, int page);
 }

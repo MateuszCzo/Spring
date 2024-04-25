@@ -6,6 +6,7 @@ import mc.project.filmBase.dto.request.RatingRequest;
 import mc.project.filmBase.dto.request.RatingStatusRequest;
 import mc.project.filmBase.dto.response.FilmResponse;
 import mc.project.filmBase.dto.response.RatingResponse;
+import mc.project.filmBase.enums.RatingStatus;
 import mc.project.filmBase.mapper.FilmMapper;
 import mc.project.filmBase.mapper.RatingMapper;
 import mc.project.filmBase.model.Film;
@@ -69,9 +70,9 @@ public class RatingServiceImpl implements RatingAdminService, RatingFrontService
 
         Rating rating = Rating.builder()
                 .film(film)
-                .status(ratingRequest.getStatus())
                 .description(ratingRequest.getDescription())
                 .rating(ratingRequest.getRating())
+                .status(RatingStatus.NOT_CONFIRMED)
                 .build();
 
         ratingRepository.save(rating);
@@ -85,9 +86,28 @@ public class RatingServiceImpl implements RatingAdminService, RatingFrontService
 
         rating.setRating(ratingRequest.getRating());
         rating.setDescription(ratingRequest.getDescription());
+        rating.setStatus(RatingStatus.NOT_CONFIRMED);
 
         ratingRepository.save(rating);
 
         return ratingMapper.mapToRatingResponse(rating);
+    }
+
+    @Transactional
+    public Collection<RatingResponse> getByStatus(RatingStatus status, int page) {
+        Collection<Rating> ratings;
+
+        if (status == null) {
+            ratings = ratingRepository.findAllRatings(
+                    PageRequest.of(page, PAGE_SIZE)
+            );
+        } else {
+            ratings = ratingRepository.findAllByStatus(
+                    status,
+                    PageRequest.of(page, PAGE_SIZE)
+            );
+        }
+
+        return ratingMapper.mapToRatingResponse(ratings);
     }
 }

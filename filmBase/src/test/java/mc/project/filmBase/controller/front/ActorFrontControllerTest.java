@@ -95,21 +95,21 @@ class ActorFrontControllerTest {
     @Transactional
     void getFilms() throws Exception {
         // Given
+        Actor actor = Actor.builder()
+                .firstname("actor_firstname")
+                .lastname("actor_lastname")
+                .build();
+
+        actorRepository.save(actor);
+
         Film film = Film.builder()
                 .status(FilmStatus.AFTER_PREMIERE)
                 .description("film_description")
                 .title("film_title")
+                .actors(List.of(actor))
                 .build();
-
-        Actor actor = Actor.builder()
-                .firstname("actor_firstname")
-                .lastname("actor_lastname")
-                .films(List.of(film))
-                .build();
-
 
         filmRepository.save(film);
-        actorRepository.save(actor);
 
         // When
         MvcResult mvcResult = mockMvc.perform(get("/actor/" + actor.getId() + "/films"))
@@ -122,6 +122,13 @@ class ActorFrontControllerTest {
                 new TypeReference<Collection<FilmResponse>>() {}
         );
 
-        assertNotEquals(filmResponses.size(), 0);
+        assertEquals(filmResponses.size(), 1);
+
+        FilmResponse firstFilmresponse = filmResponses.stream().findFirst().get();
+
+        assertEquals(film.getId(), firstFilmresponse.getId());
+        assertEquals(film.getTitle(), firstFilmresponse.getTitle());
+        assertEquals(film.getDescription(), firstFilmresponse.getDescription());
+        assertEquals(film.getStatus(), firstFilmresponse.getStatus());
     }
 }

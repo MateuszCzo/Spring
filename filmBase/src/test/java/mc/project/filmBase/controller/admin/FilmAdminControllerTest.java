@@ -286,7 +286,7 @@ class FilmAdminControllerTest {
     }
 
     @Test
-    // @Transactional
+    @Transactional
     void getRatings() throws Exception {
         // Given
         Film film = Film.builder()

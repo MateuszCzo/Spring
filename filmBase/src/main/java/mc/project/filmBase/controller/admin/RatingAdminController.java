@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import mc.project.filmBase.dto.request.RatingStatusRequest;
 import mc.project.filmBase.dto.response.FilmResponse;
 import mc.project.filmBase.dto.response.RatingResponse;
+import mc.project.filmBase.enums.RatingStatus;
 import mc.project.filmBase.service.admin.RatingAdminService;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +21,17 @@ public class RatingAdminController {
         return ratingService.get(id);
     }
 
+//    @GetMapping
+//    public Collection<RatingResponse> getRatings(@RequestParam(name = "page", defaultValue = "0") int page) {
+//        return ratingService.getPage(page);
+//    }
+
     @GetMapping
-    public Collection<RatingResponse> getRatings(@RequestParam(name = "page", defaultValue = "0") int page) {
-        return ratingService.getPage(page);
+    public Collection<RatingResponse> getRatings(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "status", required = false) RatingStatus status)
+    {
+        return ratingService.getByStatus(status, page);
     }
 
     @PutMapping

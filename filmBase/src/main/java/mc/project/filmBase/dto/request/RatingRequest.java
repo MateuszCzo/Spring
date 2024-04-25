@@ -1,7 +1,6 @@
 package mc.project.filmBase.dto.request;
 
 import lombok.*;
-import mc.project.filmBase.enums.RatingStatus;
 
 @Getter
 @Setter
@@ -13,5 +12,4 @@ public class RatingRequest {
     private String description;
     private int rating;
     private long filmId;
-    private RatingStatus status;
 }

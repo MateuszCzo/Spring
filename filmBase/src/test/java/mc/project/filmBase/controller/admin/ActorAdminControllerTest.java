@@ -94,7 +94,7 @@ class ActorAdminControllerTest {
                 new TypeReference<Collection<ActorResponse>>() {}
         );
 
-        assertNotEquals(responseActors.size(), 0);
+        assertNotEquals(0, responseActors.size());
     }
 
     @Test
@@ -135,11 +135,11 @@ class ActorAdminControllerTest {
 
         List<Actor> actors = actorRepository.findAllByFirstnameAndLastname(actorRequest.getFirstname(), actorRequest.getLastname());
 
-        assertEquals(actors.size(), 1);
+        assertEquals(1, actors.size());
 
         Actor actor = actors.stream().findFirst().orElseThrow();
 
-        assertEquals(actor.getFilms().size(), 1);
+        assertEquals(1, actor.getFilms().size());
 
         assertEquals(actor.getFilms().stream().findFirst().orElseThrow().getId(), film.getId());
     }
@@ -254,20 +254,21 @@ class ActorAdminControllerTest {
     @Transactional
     void getFilms() throws Exception {
         // Given
-        Film film = Film.builder()
-                .status(FilmStatus.AFTER_PREMIERE)
-                .title("film_title1")
-                .description("film_description1")
-                .build();
-
         Actor actor = Actor.builder()
                 .firstname("actor_firstname")
                 .lastname("actor_lastname")
-                .films(List.of(film))
+                .build();
+
+        actorRepository.save(actor);
+
+        Film film = Film.builder()
+                .status(FilmStatus.AFTER_PREMIERE)
+                .title("film_title")
+                .description("film_description")
+                .actors(List.of(actor))
                 .build();
 
         filmRepository.save(film);
-        actorRepository.save(actor);
 
         // When
         MvcResult mvcResult = mockMvc.perform(get("/admin/actor/" + actor.getId() + "/films"))
@@ -280,8 +281,8 @@ class ActorAdminControllerTest {
                 new TypeReference<Collection<FilmResponse>>() {}
         );
 
-        assertEquals(filmResponses.size(), 1);
-        assertEquals(filmResponses.stream().findFirst().orElseThrow().getTitle(), film.getTitle());
+        assertEquals(1, filmResponses.size());
+        assertEquals(film.getTitle(), filmResponses.stream().findFirst().orElseThrow().getTitle());
     }
 
     @Test

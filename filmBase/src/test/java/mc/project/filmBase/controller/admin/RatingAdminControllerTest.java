@@ -115,7 +115,52 @@ class RatingAdminControllerTest {
                 new TypeReference<Collection<RatingResponse>>() {}
         );
 
-        assertNotEquals(ratingResponse.size(), 0);
+        assertNotEquals(0, ratingResponse.size());
+    }
+
+    @Test
+    @Transactional
+    void getNotConfirmedRatings() throws Exception {
+        // Given
+        Film film = Film.builder()
+                .title("film_title")
+                .description("film_description")
+                .status(FilmStatus.AFTER_PREMIERE)
+                .build();
+
+        filmRepository.save(film);
+
+        Rating rating1 = Rating.builder()
+                .rating(4)
+                .description("rating_description1")
+                .status(RatingStatus.CONFIRMED)
+                .film(film)
+                .build();
+
+        Rating rating2 = Rating.builder()
+                .rating(2)
+                .description("rating_description2")
+                .status(RatingStatus.NOT_CONFIRMED)
+                .film(film)
+                .build();
+
+        ratingRepository.save(rating1);
+        ratingRepository.save(rating2);
+
+        // When
+        MvcResult mvcResult = mockMvc.perform(get("/admin/rating")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{status=\"NOT_CONFIRMED\"}"))
+                .andExpect(status().is(200))
+                .andReturn();
+
+        // Then
+        Collection<RatingResponse> ratingResponse = objectMapper.readValue(
+                mvcResult.getResponse().getContentAsString(),
+                new TypeReference<Collection<RatingResponse>>() {}
+        );
+
+        assertNotEquals(0, ratingResponse.size());
     }
 
     @Test

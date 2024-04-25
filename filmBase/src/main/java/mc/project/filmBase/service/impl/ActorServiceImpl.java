@@ -13,15 +13,19 @@ import mc.project.filmBase.repository.ActorRepository;
 import mc.project.filmBase.repository.FilmRepository;
 import mc.project.filmBase.service.admin.ActorAdminService;
 import mc.project.filmBase.service.front.ActorFrontService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ActorServiceImpl implements ActorAdminService, ActorFrontService {
     public static final int PAGE_SIZE = 20;
+    private static final Logger log = LoggerFactory.getLogger(ActorServiceImpl.class);
 
     private final ActorRepository actorRepository;
     private final FilmRepository filmRepository;
@@ -78,10 +82,16 @@ public class ActorServiceImpl implements ActorAdminService, ActorFrontService {
         return actorMapper.mapToActorResponse(actor);
     }
 
-    @Transactional
-    public Collection<FilmResponse> getFilms(long id) {
+    //@Transactional
+    public Collection<FilmResponse> getFilms(long id, int page) {
         Actor actor = actorRepository.findById(id).orElseThrow();
 
-        return filmMapper.mapToFilmResponse(actor.getFilms());
+        log.atInfo().log("actor: " + actor.toString());
+
+        Collection<Film> films = filmRepository.findAllByActors(List.of(actor), PageRequest.of(page, PAGE_SIZE));
+
+        log.atInfo().log("films: " + films.toString());
+
+        return filmMapper.mapToFilmResponse(films);
     }
 }

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collection;
 
 @RestController
-@RequestMapping("film")
+@RequestMapping("/film")
 @RequiredArgsConstructor
 public class FilmFrontController {
     private final FilmFrontService filmService;
@@ -26,12 +26,12 @@ public class FilmFrontController {
     }
 
     @GetMapping("/{id}/actors")
-    public Collection<ActorResponse> getActors(@PathVariable("id") long id) {
-        return filmService.getActors(id);
+    public Collection<ActorResponse> getActors(@PathVariable("id") long id, @RequestParam(name = "page", defaultValue = "0") int page) {
+        return filmService.getActors(id, page);
     }
 
     @GetMapping("/{id}/ratings")
-    public Collection<RatingResponse> getRatings(@PathVariable("id") long id) {
-        return filmService.getRatings(id);
+    public Collection<RatingResponse> getRatings(@PathVariable("id") long id, @RequestParam(name = "page", defaultValue = "0") int page) {
+        return filmService.getConfirmedRatings(id, page);
     }
 }

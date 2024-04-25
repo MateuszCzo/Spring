@@ -6,6 +6,7 @@ import mc.project.filmBase.dto.request.FilmRequest;
 import mc.project.filmBase.dto.response.ActorResponse;
 import mc.project.filmBase.dto.response.FilmResponse;
 import mc.project.filmBase.dto.response.RatingResponse;
+import mc.project.filmBase.enums.RatingStatus;
 import mc.project.filmBase.mapper.ActorMapper;
 import mc.project.filmBase.mapper.FilmMapper;
 import mc.project.filmBase.mapper.RatingMapper;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -76,10 +78,8 @@ public class FilmServiceImpl implements FilmAdminService, FilmFrontService {
         Film film = filmRepository.findById(filmRequest.getId()).orElseThrow();
 
         Collection<Actor> actors = actorRepository.findAllById(filmRequest.getActorIds());
-        Collection<Rating> ratings = ratingRepository.findAllByFilm(film);
 
         film.setActors(actors);
-        film.setRatings(ratings);
         film.setTitle(filmRequest.getTitle());
         film.setDescription(filmRequest.getDescription());
         film.setStatus(filmRequest.getStatus());
@@ -90,16 +90,29 @@ public class FilmServiceImpl implements FilmAdminService, FilmFrontService {
     }
 
     @Transactional
-    public Collection<ActorResponse> getActors(long id) {
+    public Collection<ActorResponse> getActors(long id, int page) {
         Film film = filmRepository.findById(id).orElseThrow();
 
-        return actorMapper.mapToActorResponse(film.getActors());
+        Collection<Actor> actors = actorRepository.findAllByFilms(List.of(film), PageRequest.of(page, PAGE_SIZE));
+
+        return actorMapper.mapToActorResponse(actors);
     }
 
     @Transactional
-    public Collection<RatingResponse> getRatings(long id) {
+    public Collection<RatingResponse> getRatings(long id, int page) {
         Film film = filmRepository.findById(id).orElseThrow();
 
-        return ratingMapper.mapToRatingResponse(film.getRatings());
+        Collection<Rating> ratings = ratingRepository.findAllByFilm(film, PageRequest.of(page, PAGE_SIZE));
+
+        return ratingMapper.mapToRatingResponse(ratings);
+    }
+
+    @Transactional
+    public Collection<RatingResponse> getConfirmedRatings(long id, int page) {
+        Film film = filmRepository.findById(id).orElseThrow();
+
+        Collection<Rating> ratings = ratingRepository.findAllByFilmAndStatus(film, RatingStatus.CONFIRMED, PageRequest.of(page, PAGE_SIZE));
+
+        return ratingMapper.mapToRatingResponse(ratings);
     }
 }
