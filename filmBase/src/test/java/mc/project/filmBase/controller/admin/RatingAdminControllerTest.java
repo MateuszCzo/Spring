@@ -148,19 +148,21 @@ class RatingAdminControllerTest {
         ratingRepository.save(rating2);
 
         // When
-        MvcResult mvcResult = mockMvc.perform(get("/admin/rating")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{status=\"NOT_CONFIRMED\"}"))
+        MvcResult mvcResult = mockMvc.perform(get("/admin/rating?status=NOT_CONFIRMED"))
                 .andExpect(status().is(200))
                 .andReturn();
 
         // Then
-        Collection<RatingResponse> ratingResponse = objectMapper.readValue(
+        Collection<RatingResponse> ratingResponses = objectMapper.readValue(
                 mvcResult.getResponse().getContentAsString(),
                 new TypeReference<Collection<RatingResponse>>() {}
         );
 
-        assertNotEquals(0, ratingResponse.size());
+        assertNotEquals(0, ratingResponses.size());
+
+        for (RatingResponse ratingResponse : ratingResponses) {
+            assertEquals(RatingStatus.NOT_CONFIRMED, ratingResponse.getStatus());
+        }
     }
 
     @Test
@@ -239,7 +241,7 @@ class RatingAdminControllerTest {
         ratingRepository.save(rating);
 
         // When
-        MvcResult mvcResult = mockMvc.perform(get("/admin/rating/" + rating.getId() + "/films"))
+        MvcResult mvcResult = mockMvc.perform(get("/admin/rating/" + rating.getId() + "/film"))
                 .andExpect(status().is(200))
                 .andReturn();
 

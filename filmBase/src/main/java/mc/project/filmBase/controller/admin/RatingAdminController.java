@@ -21,11 +21,6 @@ public class RatingAdminController {
         return ratingService.get(id);
     }
 
-//    @GetMapping
-//    public Collection<RatingResponse> getRatings(@RequestParam(name = "page", defaultValue = "0") int page) {
-//        return ratingService.getPage(page);
-//    }
-
     @GetMapping
     public Collection<RatingResponse> getRatings(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -39,7 +34,7 @@ public class RatingAdminController {
         return ratingService.updateStatus(ratingStatusRequest);
     }
 
-    @GetMapping("/{id}/films")
+    @GetMapping("/{id}/film")
     public FilmResponse getFilm(@PathVariable(name = "id") long id) {
         return ratingService.getFilm(id);
     }
