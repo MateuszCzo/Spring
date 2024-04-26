@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Collection;
-import java.util.Collections;
 
 @Entity
 @Getter
@@ -19,5 +18,5 @@ public class Actor {
     private String firstname;
     private String lastname;
     @ManyToMany(mappedBy = "actors")
-    private Collection<Film> films = Collections.emptyList();
+    private Collection<Film> films;
 }

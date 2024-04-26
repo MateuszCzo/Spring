@@ -1,10 +1,11 @@
-package mc.project.filmBase.controller.front;
+package mc.project.filmBase.controller.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import mc.project.filmBase.dto.request.AuthenticationRequest;
 import mc.project.filmBase.dto.request.RatingRequest;
-import mc.project.filmBase.dto.response.FilmResponse;
-import mc.project.filmBase.dto.response.RatingResponse;
+import mc.project.filmBase.dto.request.RegisterRequest;
+import mc.project.filmBase.dto.response.AuthenticationResponse;
 import mc.project.filmBase.enums.FilmStatus;
 import mc.project.filmBase.enums.RatingStatus;
 import mc.project.filmBase.enums.UserRole;
@@ -14,6 +15,7 @@ import mc.project.filmBase.model.User;
 import mc.project.filmBase.repository.FilmRepository;
 import mc.project.filmBase.repository.RatingRepository;
 import mc.project.filmBase.repository.UserRepository;
+import mc.project.filmBase.service.auth.JwtService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +26,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -34,135 +39,220 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class RatingFrontControllerTest {
+class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    private RatingRepository ratingRepository;
+    private JwtService jwtService;
     @Autowired
     private FilmRepository filmRepository;
     @Autowired
-    private UserRepository userRepository;
+    private RatingRepository ratingRepository;
 
     @Test
     @Transactional
-    void getRating() throws Exception {
+    void register() throws Exception {
         // Given
-        User user = User.builder()
-                .username("username")
-                .password("password")
-                .credentialsNonExpired(true)
-                .enabled(true)
-                .accountNonLocked(true)
-                .accountNonExpired(true)
-                .role(UserRole.USER)
-                .build();
-
-        userRepository.save(user);
-
-        Film film = Film.builder()
-                .title("film_title")
-                .description("film_description")
-                .status(FilmStatus.AFTER_PREMIERE)
-                .build();
-
-        filmRepository.save(film);
-
-        Rating rating = Rating.builder()
-                .film(film)
-                .status(RatingStatus.NOT_CONFIRMED)
-                .description("rating_description")
-                .rating(5)
-                .user(user)
-                .build();
-
-        ratingRepository.save(rating);
-
-        // When
-        MvcResult mvcResult = mockMvc.perform(get("/rating/" + rating.getId()))
-                .andExpect(status().is(200))
-                .andReturn();
-
-        // Then
-        RatingResponse ratingResponse = objectMapper.readValue(
-                mvcResult.getResponse().getContentAsString(),
-                RatingResponse.class
-        );
-
-        assertNotNull(ratingResponse);
-        assertEquals(rating.getId(), ratingResponse.getId());
-        assertEquals(rating.getRating(), ratingResponse.getRating());
-        assertEquals(rating.getDescription(), ratingResponse.getDescription());
-        assertEquals(rating.getStatus(), ratingResponse.getStatus());
-    }
-
-    @Test
-    @Transactional
-    @WithMockUser("username")
-    void addRating() throws Exception {
-        // Given
-        User user = User.builder()
-                .username("username")
-                .password("password")
-                .credentialsNonExpired(true)
-                .enabled(true)
-                .accountNonLocked(true)
-                .accountNonExpired(true)
-                .role(UserRole.USER)
-                .build();
-
-        userRepository.save(user);
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(), user.getAuthorities());
-
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        Film film = Film.builder()
-                .title("film_title")
-                .description("film_description")
-                .status(FilmStatus.AFTER_PREMIERE)
-                .build();
-
-        filmRepository.save(film);
-
-        RatingRequest ratingRequest = RatingRequest.builder()
-                .rating(2)
-                .description("new_rating_description")
-                .filmId(film.getId())
+        RegisterRequest registerRequest = RegisterRequest.builder()
+                .password("test_password")
+                .username("test_username")
                 .build();
 
         // When
-        MvcResult mvcResult = mockMvc.perform(post("/rating")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(ratingRequest))
+        MvcResult mvcResult = mockMvc.perform(post("/auth/register")
+                        .content(objectMapper.writeValueAsString(registerRequest))
+                    .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().is(200))
                 .andReturn();
 
         // Then
-        RatingResponse ratingResponse = objectMapper.readValue(
+        AuthenticationResponse authenticationResponse = objectMapper.readValue(
                 mvcResult.getResponse().getContentAsString(),
-                RatingResponse.class
+                AuthenticationResponse.class
         );
 
-        assertNotNull(ratingResponse);
-        assertEquals(ratingRequest.getRating(), ratingResponse.getRating());
-        assertEquals(ratingRequest.getDescription(), ratingResponse.getDescription());
-        assertEquals(RatingStatus.NOT_CONFIRMED, ratingResponse.getStatus());
+        Optional<User> user = userRepository.findByUsername(registerRequest.getUsername());
+
+        assertNotNull(authenticationResponse);
+        assertTrue(user.isPresent());
+
+        assertEquals(registerRequest.getUsername(), user.get().getUsername());
+        assertNotEquals(registerRequest.getPassword(), user.get().getPassword());
+
+        assertTrue(authenticationResponse.isRegistered());
+        assertNotEquals(authenticationResponse.getToken(), "");
+    }
+
+    @Test
+    @Transactional
+    void canNotRegister() throws Exception {
+        // Given
+        User user = User.builder()
+                .username("user_name")
+                .password(passwordEncoder.encode("user_password"))
+                .credentialsNonExpired(true)
+                .enabled(true)
+                .accountNonLocked(true)
+                .accountNonExpired(true)
+                .role(UserRole.USER)
+                .build();
+
+        userRepository.save(user);
+
+        RegisterRequest registerRequest = RegisterRequest.builder()
+                .password("test_password")
+                .username(user.getUsername())
+                .build();
+
+        // When
+        MvcResult mvcResult = mockMvc.perform(post("/auth/register")
+                        .content(objectMapper.writeValueAsString(registerRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is(200))
+                .andReturn();
+
+        // Then
+        AuthenticationResponse authenticationResponse = objectMapper.readValue(
+                mvcResult.getResponse().getContentAsString(),
+                AuthenticationResponse.class
+        );
+
+        assertNotNull(authenticationResponse);
+        assertFalse(authenticationResponse.isRegistered());
+        assertNull(authenticationResponse.getToken());
+    }
+
+    @Test
+    @Transactional
+    void authenticate() throws Exception {
+        // Given
+        String password = "user_password";
+
+        User user = User.builder()
+                .username("user_name")
+                .password(passwordEncoder.encode(password))
+                .credentialsNonExpired(true)
+                .enabled(true)
+                .accountNonLocked(true)
+                .accountNonExpired(true)
+                .role(UserRole.USER)
+                .build();
+
+        userRepository.save(user);
+
+        AuthenticationRequest authenticationRequest = AuthenticationRequest.builder()
+                .password(password)
+                .username(user.getUsername())
+                .build();
+
+        // When
+        MvcResult mvcResult = mockMvc.perform(post("/auth/authenticate")
+                        .content(objectMapper.writeValueAsString(authenticationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is(200))
+                .andReturn();
+
+        // Then
+        AuthenticationResponse authenticationResponse = objectMapper.readValue(
+                mvcResult.getResponse().getContentAsString(),
+                AuthenticationResponse.class
+        );
+
+        assertNotNull(authenticationResponse);
+        assertTrue(authenticationResponse.isRegistered());
+        assertEquals(authenticationResponse.getToken(), jwtService.generateToken(user));
+    }
+
+    @Test
+    @Transactional
+    void canNotAuthenticate() throws Exception {
+        // Given
+        User user = User.builder()
+                .username("user_name")
+                .password(passwordEncoder.encode("password"))
+                .credentialsNonExpired(true)
+                .enabled(true)
+                .accountNonLocked(true)
+                .accountNonExpired(true)
+                .role(UserRole.USER)
+                .build();
+
+        userRepository.save(user);
+
+        AuthenticationRequest authenticationRequest = AuthenticationRequest.builder()
+                .password("different_password")
+                .username(user.getUsername())
+                .build();
+
+        // When
+        MvcResult mvcResult = mockMvc.perform(post("/auth/authenticate")
+                        .content(objectMapper.writeValueAsString(authenticationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andReturn();
+
+        // Then
+        int status = mvcResult.getResponse().getStatus();
+
+        assertEquals(status, 403);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(value = "admin", roles = {"ADMIN"})
+    void canAccessAdminRoute() throws Exception {
+        // Given
+
+        // When
+        MvcResult mvcResult = mockMvc.perform(get("/admin/film"))
+                .andReturn();
+
+        // Then
+        int status = mvcResult.getResponse().getStatus();
+
+        assertEquals(status, 200);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser
+    void canNotAccessAdminRoute() throws Exception {
+        // Given
+        Film film = Film.builder()
+                .title("film_title")
+                .description("film_description")
+                .status(FilmStatus.AFTER_PREMIERE)
+                .build();
+
+        filmRepository.save(film);
+
+        // When
+        MvcResult mvcResult = mockMvc.perform(get("/admin/film"))
+                .andReturn();
+
+        // Then
+        int status = mvcResult.getResponse().getStatus();
+
+        assertEquals(status, 403);
     }
 
     @Test
     @Transactional
     @WithMockUser("username")
-    void updateRating() throws Exception {
+    void canAccessRatingFrontControllerPutMethod() throws Exception {
         // Given
         User user = User.builder()
                 .username("username")
-                .password("password")
+                .password(passwordEncoder.encode("password"))
                 .credentialsNonExpired(true)
                 .enabled(true)
                 .accountNonLocked(true)
@@ -208,198 +298,21 @@ class RatingFrontControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(ratingRequest))
                 )
-                .andExpect(status().is(200))
-                .andReturn();
-
-        // Then
-        RatingResponse ratingResponse = objectMapper.readValue(
-                mvcResult.getResponse().getContentAsString(),
-                RatingResponse.class
-        );
-
-        assertNotNull(ratingResponse);
-        assertEquals(rating.getId(), ratingResponse.getId());
-        assertEquals(ratingRequest.getRating(), ratingResponse.getRating());
-        assertEquals(ratingRequest.getDescription(), ratingResponse.getDescription());
-        assertEquals(RatingStatus.NOT_CONFIRMED, ratingResponse.getStatus());
-    }
-
-    @Test
-    @Transactional
-    void getFilm() throws Exception {
-        // Given
-        User user = User.builder()
-                .username("username")
-                .password("password")
-                .credentialsNonExpired(true)
-                .enabled(true)
-                .accountNonLocked(true)
-                .accountNonExpired(true)
-                .role(UserRole.USER)
-                .build();
-
-        userRepository.save(user);
-
-        Film film = Film.builder()
-                .title("film_title")
-                .description("film_description")
-                .status(FilmStatus.AFTER_PREMIERE)
-                .build();
-
-        filmRepository.save(film);
-
-        Rating rating = Rating.builder()
-                .status(RatingStatus.CONFIRMED)
-                .rating(4)
-                .description("rating_description")
-                .film(film)
-                .user(user)
-                .build();
-
-        ratingRepository.save(rating);
-
-        // When
-        MvcResult mvcResult = mockMvc.perform(get("/rating/" + rating.getId() + "/film"))
-                .andExpect(status().is(200))
-                .andReturn();
-
-        // Then
-        FilmResponse filmResponse = objectMapper.readValue(
-                mvcResult.getResponse().getContentAsString(),
-                FilmResponse.class
-        );
-
-        assertNotNull(filmResponse);
-        assertEquals(film.getId(), filmResponse.getId());
-        assertEquals(film.getTitle(), filmResponse.getTitle());
-        assertEquals(film.getDescription(), filmResponse.getDescription());
-    }
-
-    @Test
-    @Transactional
-    @WithMockUser("username")
-    void userCanNotAddMoreThanOneRating() throws Exception {
-        // Given
-        User user = User.builder()
-                .username("username")
-                .password("password")
-                .credentialsNonExpired(true)
-                .enabled(true)
-                .accountNonLocked(true)
-                .accountNonExpired(true)
-                .role(UserRole.USER)
-                .build();
-
-        userRepository.save(user);
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(), user.getAuthorities());
-
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        Film film = Film.builder()
-                .title("film_title")
-                .description("film_description")
-                .status(FilmStatus.AFTER_PREMIERE)
-                .build();
-
-        filmRepository.save(film);
-
-        Rating rating = Rating.builder()
-                .status(RatingStatus.CONFIRMED)
-                .rating(4)
-                .description("rating_description")
-                .film(film)
-                .user(user)
-                .build();
-
-        ratingRepository.save(rating);
-
-        RatingRequest ratingRequest = RatingRequest.builder()
-                .rating(2)
-                .description("new_rating_description")
-                .filmId(film.getId())
-                .build();
-
-        // When
-        MvcResult mvcResult = mockMvc.perform(post("/rating")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(ratingRequest))
-                )
-                .andReturn();
-
-        // Then
-        RatingResponse ratingResponse = objectMapper.readValue(
-                mvcResult.getResponse().getContentAsString(),
-                RatingResponse.class
-        );
-
-        assertNotNull(ratingResponse);
-        assertEquals(rating.getId(), ratingResponse.getId());
-        assertEquals(rating.getDescription(), ratingResponse.getDescription());
-        assertEquals(rating.getStatus(), ratingResponse.getStatus());
-    }
-
-    @Test
-    @Transactional
-    @WithMockUser("username")
-    void validateRating() throws Exception {
-        // Given
-        User user = User.builder()
-                .username("username")
-                .password("password")
-                .credentialsNonExpired(true)
-                .enabled(true)
-                .accountNonLocked(true)
-                .accountNonExpired(true)
-                .role(UserRole.USER)
-                .build();
-
-        userRepository.save(user);
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(), user.getAuthorities());
-
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        Film film = Film.builder()
-                .title("film_title")
-                .description("film_description")
-                .status(FilmStatus.AFTER_PREMIERE)
-                .build();
-
-        filmRepository.save(film);
-
-        RatingRequest ratingRequest = RatingRequest.builder()
-                .rating(6)
-                .description("new_rating_description")
-                .filmId(film.getId())
-                .build();
-
-        // When
-        MvcResult mvcResult = mockMvc.perform(post("/rating")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(ratingRequest))
-                )
                 .andReturn();
 
         // Then
         int status = mvcResult.getResponse().getStatus();
 
-        assertEquals(status, 400);
+        assertEquals(status, 200);
     }
-
 
     @Test
     @Transactional
-    @WithMockUser("username1")
-    void otherUserUpdatingRating() throws Exception {
+    void canNotAccessRatingFrontControllerPutMethod() throws Exception {
         // Given
-        User user1 = User.builder()
-                .username("username1")
-                .password("password1")
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("password"))
                 .credentialsNonExpired(true)
                 .enabled(true)
                 .accountNonLocked(true)
@@ -407,24 +320,7 @@ class RatingFrontControllerTest {
                 .role(UserRole.USER)
                 .build();
 
-        User user2 = User.builder()
-                .username("username2")
-                .password("password2")
-                .credentialsNonExpired(true)
-                .enabled(true)
-                .accountNonLocked(true)
-                .accountNonExpired(true)
-                .role(UserRole.USER)
-                .build();
-
-        userRepository.save(user1);
-        userRepository.save(user2);
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user1.getUsername(), user1.getPassword(), user1.getAuthorities());
-
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
+        userRepository.save(user);
 
         Film film = Film.builder()
                 .title("film_title")
@@ -439,14 +335,14 @@ class RatingFrontControllerTest {
                 .rating(4)
                 .description("rating_description")
                 .film(film)
-                .user(user2)
+                .user(user)
                 .build();
 
         ratingRepository.save(rating);
 
         RatingRequest ratingRequest = RatingRequest.builder()
                 .id(rating.getId())
-                .rating(3)
+                .rating(2)
                 .description("new_rating_description")
                 .filmId(film.getId())
                 .build();
@@ -462,5 +358,108 @@ class RatingFrontControllerTest {
         int status = mvcResult.getResponse().getStatus();
 
         assertEquals(status, 403);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser("username")
+    void canAccessRatingFrontControllerPostMethod() throws Exception {
+        // Given
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("password"))
+                .credentialsNonExpired(true)
+                .enabled(true)
+                .accountNonLocked(true)
+                .accountNonExpired(true)
+                .role(UserRole.USER)
+                .build();
+
+        userRepository.save(user);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(), user.getAuthorities());
+
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        Film film = Film.builder()
+                .title("film_title")
+                .description("film_description")
+                .status(FilmStatus.AFTER_PREMIERE)
+                .build();
+
+        filmRepository.save(film);
+
+        RatingRequest ratingRequest = RatingRequest.builder()
+                .rating(2)
+                .description("new_rating_description")
+                .filmId(film.getId())
+                .build();
+
+        // When
+        MvcResult mvcResult = mockMvc.perform(post("/rating")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(ratingRequest))
+                )
+                .andReturn();
+
+        // Then
+        int status = mvcResult.getResponse().getStatus();
+
+        assertEquals(status, 200);
+    }
+
+    @Test
+    @Transactional
+    void canNotAccessRatingFrontControllerPostMethod() throws Exception {
+        // Given
+        Film film = Film.builder()
+                .title("film_title")
+                .description("film_description")
+                .status(FilmStatus.AFTER_PREMIERE)
+                .build();
+
+        filmRepository.save(film);
+
+        RatingRequest ratingRequest = RatingRequest.builder()
+                .rating(2)
+                .description("new_rating_description")
+                .filmId(film.getId())
+                .build();
+
+        // When
+        MvcResult mvcResult = mockMvc.perform(post("/rating")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(ratingRequest))
+                )
+                .andReturn();
+
+        // Then
+        int status = mvcResult.getResponse().getStatus();
+
+        assertEquals(status, 403);
+    }
+
+    @Test
+    @Transactional
+    void canAccessOtherRoutes() throws Exception {
+        // Given
+        Film film = Film.builder()
+                .title("film_title")
+                .description("film_description")
+                .status(FilmStatus.AFTER_PREMIERE)
+                .build();
+
+        filmRepository.save(film);
+
+        // When
+        MvcResult mvcResult = mockMvc.perform(get("/film"))
+                .andReturn();
+
+        // Then
+        int status = mvcResult.getResponse().getStatus();
+
+        assertEquals(status, 200);
     }
 }

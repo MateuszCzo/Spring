@@ -9,17 +9,21 @@ import mc.project.filmBase.dto.response.FilmResponse;
 import mc.project.filmBase.dto.response.RatingResponse;
 import mc.project.filmBase.enums.FilmStatus;
 import mc.project.filmBase.enums.RatingStatus;
+import mc.project.filmBase.enums.UserRole;
 import mc.project.filmBase.model.Actor;
 import mc.project.filmBase.model.Film;
 import mc.project.filmBase.model.Rating;
+import mc.project.filmBase.model.User;
 import mc.project.filmBase.repository.ActorRepository;
 import mc.project.filmBase.repository.FilmRepository;
 import mc.project.filmBase.repository.RatingRepository;
+import mc.project.filmBase.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -33,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser(value = "admin", roles = {"ADMIN"})
 class FilmAdminControllerTest {
 
     @Autowired
@@ -45,6 +50,8 @@ class FilmAdminControllerTest {
     private FilmRepository filmRepository;
     @Autowired
     private RatingRepository ratingRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     @Transactional
@@ -289,6 +296,18 @@ class FilmAdminControllerTest {
     @Transactional
     void getRatings() throws Exception {
         // Given
+        User user = User.builder()
+                .username("test_user")
+                .password("password")
+                .credentialsNonExpired(true)
+                .enabled(true)
+                .accountNonLocked(true)
+                .accountNonExpired(true)
+                .role(UserRole.USER)
+                .build();
+
+        userRepository.save(user);
+
         Film film = Film.builder()
                 .status(FilmStatus.AFTER_PREMIERE)
                 .title("film_title")
@@ -302,6 +321,7 @@ class FilmAdminControllerTest {
                 .description("rating_description")
                 .status(RatingStatus.CONFIRMED)
                 .film(film)
+                .user(user)
                 .build();
 
         ratingRepository.save(rating);

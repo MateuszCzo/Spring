@@ -5,7 +5,6 @@ import lombok.*;
 import mc.project.filmBase.enums.FilmStatus;
 
 import java.util.Collection;
-import java.util.Collections;
 
 @Entity
 @Getter
@@ -24,9 +23,9 @@ public class Film {
             name = "film_actor",
             joinColumns = @JoinColumn(name = "film_id"),
             inverseJoinColumns = @JoinColumn(name = "actor_id"))
-    private Collection<Actor> actors = Collections.emptyList();
+    private Collection<Actor> actors;
     @OneToMany(mappedBy="film")
-    private Collection<Rating> ratings = Collections.emptyList();
+    private Collection<Rating> ratings;
     @Enumerated(EnumType.STRING)
     private FilmStatus status;
 }

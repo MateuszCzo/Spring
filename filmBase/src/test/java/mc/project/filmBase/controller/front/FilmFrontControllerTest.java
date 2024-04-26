@@ -8,12 +8,15 @@ import mc.project.filmBase.dto.response.FilmResponse;
 import mc.project.filmBase.dto.response.RatingResponse;
 import mc.project.filmBase.enums.FilmStatus;
 import mc.project.filmBase.enums.RatingStatus;
+import mc.project.filmBase.enums.UserRole;
 import mc.project.filmBase.model.Actor;
 import mc.project.filmBase.model.Film;
 import mc.project.filmBase.model.Rating;
+import mc.project.filmBase.model.User;
 import mc.project.filmBase.repository.ActorRepository;
 import mc.project.filmBase.repository.FilmRepository;
 import mc.project.filmBase.repository.RatingRepository;
+import mc.project.filmBase.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-
 @AutoConfigureMockMvc
 class FilmFrontControllerTest {
     @Autowired
@@ -43,6 +45,8 @@ class FilmFrontControllerTest {
     private ActorRepository actorRepository;
     @Autowired
     private RatingRepository ratingRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     @Transactional
@@ -144,6 +148,18 @@ class FilmFrontControllerTest {
     @Transactional
     void getRatings() throws Exception {
         // Given
+        User user = User.builder()
+                .username("test_user")
+                .password("password")
+                .credentialsNonExpired(true)
+                .enabled(true)
+                .accountNonLocked(true)
+                .accountNonExpired(true)
+                .role(UserRole.USER)
+                .build();
+
+        userRepository.save(user);
+
         Film film = Film.builder()
                 .title("film_title")
                 .description("film_description")
@@ -157,6 +173,7 @@ class FilmFrontControllerTest {
                 .description("rating_description")
                 .status(RatingStatus.CONFIRMED)
                 .film(film)
+                .user(user)
                 .build();
 
         ratingRepository.save(rating);

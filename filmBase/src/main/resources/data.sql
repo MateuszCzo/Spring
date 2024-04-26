@@ -22,17 +22,22 @@ INSERT INTO film(title, description, status) VALUES
    ('The Lord of the Rings: The Return of the King', 'Gandalf and Aragorn lead the World of Men against Sauron''s army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.', 'AFTER_PREMIERE'),
    ('Fight Club', 'An insomniac office worker and a devil-may-care soapmaker form an underground fight club that evolves into something much, much more.', 'BEFORE_PREMIERE');
 
-INSERT INTO rating (description, rating, status, film_id) VALUES
-    ('Great movie!', 5, 'CONFIRMED', 1),
-    ('One of my favorites.', 4, 'NOT_CONFIRMED', 2),
-    ('Amazing performance by the cast.', 5, 'CONFIRMED', 3),
-    ('Could have been better.', 3, 'NOT_CONFIRMED', 4),
-    ('Classic!', 5, 'CONFIRMED', 5),
-    ('Heath Ledger was outstanding.', 5, 'CONFIRMED', 6),
-    ('Overrated.', 2, 'NOT_CONFIRMED', 7),
-    ('A powerful portrayal of history.', 4, 'CONFIRMED', 8),
-    ('Epic finale!', 5, 'CONFIRMED', 9),
-    ('Mind-bending!', 4, 'NOT_CONFIRMED', 10);
+-- users for tests
+INSERT INTO _user (username, password, account_non_expired, account_non_locked, credentials_non_expired, enabled, role) VALUES
+    ('user', '$2a$10$X.zK4um8oeQQJw0zmXyDXeq5X3KJuBXYanObb0EjHSfFizM0XkrmC', 1, 1, 1, 1, 'USER'),
+    ('admin', '$2a$10$X.zK4um8oeQQJw0zmXyDXeq5X3KJuBXYanObb0EjHSfFizM0XkrmC', 1, 1, 1, 1, 'ADMIN');
+
+INSERT INTO rating (description, rating, status, film_id, user_id) VALUES
+    ('Great movie!', 5, 'CONFIRMED', 1, 1),
+    ('One of my favorites.', 4, 'NOT_CONFIRMED', 2, 1),
+    ('Amazing performance by the cast.', 5, 'CONFIRMED', 3, 1),
+    ('Could have been better.', 3, 'NOT_CONFIRMED', 4, 1),
+    ('Classic!', 5, 'CONFIRMED', 5, 1),
+    ('Heath Ledger was outstanding.', 5, 'CONFIRMED', 6, 1),
+    ('Overrated.', 2, 'NOT_CONFIRMED', 7, 1),
+    ('A powerful portrayal of history.', 4, 'CONFIRMED', 8, 1),
+    ('Epic finale!', 5, 'CONFIRMED', 9, 1),
+    ('Mind-bending!', 4, 'NOT_CONFIRMED', 10, 1);
 
 INSERT INTO film_actor (film_id, actor_id) VALUES
     (1, 1),

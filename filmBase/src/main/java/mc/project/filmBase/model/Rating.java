@@ -21,4 +21,7 @@ public class Rating {
     private Film film;
     @Enumerated(EnumType.STRING)
     private RatingStatus status;
+    @ManyToOne
+    @JoinColumn(name="user_id", nullable=false)
+    private User user;
 }
