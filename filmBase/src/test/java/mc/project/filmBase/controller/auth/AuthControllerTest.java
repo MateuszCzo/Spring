@@ -6,14 +6,17 @@ import mc.project.filmBase.dto.request.AuthenticationRequest;
 import mc.project.filmBase.dto.request.FilmRequest;
 import mc.project.filmBase.dto.request.RatingRequest;
 import mc.project.filmBase.dto.request.RegisterRequest;
+import mc.project.filmBase.dto.response.ActorResponse;
 import mc.project.filmBase.dto.response.AuthenticationResponse;
 import mc.project.filmBase.dto.response.FilmResponse;
 import mc.project.filmBase.enums.FilmStatus;
 import mc.project.filmBase.enums.RatingStatus;
 import mc.project.filmBase.enums.UserRole;
+import mc.project.filmBase.model.Actor;
 import mc.project.filmBase.model.Film;
 import mc.project.filmBase.model.Rating;
 import mc.project.filmBase.model.User;
+import mc.project.filmBase.repository.ActorRepository;
 import mc.project.filmBase.repository.FilmRepository;
 import mc.project.filmBase.repository.RatingRepository;
 import mc.project.filmBase.repository.UserRepository;
@@ -37,8 +40,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -67,6 +70,8 @@ class AuthControllerTest {
     private FilmRepository filmRepository;
     @Autowired
     private RatingRepository ratingRepository;
+    @Autowired
+    private ActorRepository actorRepository;
 
     @Test
     @Transactional
@@ -114,7 +119,7 @@ class AuthControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -156,7 +161,7 @@ class AuthControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -196,7 +201,7 @@ class AuthControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -239,10 +244,18 @@ class AuthControllerTest {
     @Transactional
     void isTokenWorkingCorrectly() throws Exception {
         // Given
+        Actor actor = Actor.builder()
+                .lastname("lastname")
+                .firstname("firstname")
+                .build();
+
+        actorRepository.save(actor);
+
         FilmRequest filmRequest = FilmRequest.builder()
                 .status(FilmStatus.AFTER_PREMIERE)
                 .title("film_title")
                 .description("film_description")
+                .actorIds(List.of(actor.getId()))
                 .build();
 
         String password = "test_password";
@@ -254,7 +267,7 @@ class AuthControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.ADMIN)
+                .role(UserRole.ROLE_ADMIN)
                 .build();
 
         userRepository.save(user);
@@ -335,7 +348,7 @@ class AuthControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -395,7 +408,7 @@ class AuthControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -450,7 +463,7 @@ class AuthControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);

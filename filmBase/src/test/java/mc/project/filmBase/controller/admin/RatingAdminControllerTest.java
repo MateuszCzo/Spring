@@ -71,7 +71,7 @@ class RatingAdminControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -124,7 +124,7 @@ class RatingAdminControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -172,7 +172,7 @@ class RatingAdminControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         User user2 = User.builder()
@@ -182,7 +182,7 @@ class RatingAdminControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user1);
@@ -244,7 +244,7 @@ class RatingAdminControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -311,7 +311,7 @@ class RatingAdminControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -363,7 +363,7 @@ class RatingAdminControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);

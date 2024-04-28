@@ -66,7 +66,7 @@ class RatingFrontControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -119,7 +119,7 @@ class RatingFrontControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -176,7 +176,7 @@ class RatingFrontControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -244,7 +244,7 @@ class RatingFrontControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -296,7 +296,7 @@ class RatingFrontControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -362,7 +362,7 @@ class RatingFrontControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -413,7 +413,7 @@ class RatingFrontControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         User user2 = User.builder()
@@ -423,7 +423,7 @@ class RatingFrontControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user1);

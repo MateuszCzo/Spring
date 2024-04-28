@@ -311,7 +311,7 @@ class FilmAdminControllerTest {
                 .enabled(true)
                 .accountNonLocked(true)
                 .accountNonExpired(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);

@@ -35,7 +35,7 @@ public class SecurityConfig {
                             .permitAll()
 
                             .requestMatchers("/admin/**")
-                            .hasRole(UserRole.ADMIN.name())
+                            .hasRole("ADMIN")
 
                             .requestMatchers(HttpMethod.PUT, "/rating")
                             .authenticated()

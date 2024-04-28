@@ -36,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
                 .accountNonLocked(true)
                 .credentialsNonExpired(true)
                 .enabled(true)
-                .role(UserRole.USER)
+                .role(UserRole.ROLE_USER)
                 .build();
 
         userRepository.save(user);
