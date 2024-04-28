@@ -1,3 +1,10 @@
 spring:
   application:
     name: filmBase
+
+  jpa:
+    show-sql: true
+
+  cache:
+    jcache:
+      config: classpath:ehcache.xml

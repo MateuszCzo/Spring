@@ -11,7 +11,7 @@ public interface UserAdminService {
 
     public Collection<UserResponse> getPage(int page);
 
-    public UserResponse update(UserLockedRequest userLockedRequest);
+    public UserResponse updateStatus(UserLockedRequest userLockedRequest);
 
     public Collection<RatingResponse> getRatings(long id, int page);
 }

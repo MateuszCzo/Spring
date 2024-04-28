@@ -18,7 +18,10 @@ import mc.project.filmBase.repository.FilmRepository;
 import mc.project.filmBase.repository.RatingRepository;
 import mc.project.filmBase.service.admin.RatingAdminService;
 import mc.project.filmBase.service.auth.UserService;
+import mc.project.filmBase.service.cache.CacheService;
 import mc.project.filmBase.service.front.RatingFrontService;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -37,8 +40,10 @@ public class RatingServiceImpl implements RatingAdminService, RatingFrontService
     private final FilmRepository filmRepository;
     private final UserMapper userMapper;
     private final UserService userService;
+    private final CacheService cacheService;
 
     @Transactional
+    @Cacheable("Rating")
     public RatingResponse get(long id) {
         Rating rating = ratingRepository.findById(id).orElseThrow();
 
@@ -46,6 +51,7 @@ public class RatingServiceImpl implements RatingAdminService, RatingFrontService
     }
 
     @Transactional
+    @Cacheable("RatingPage")
     public Collection<RatingResponse> getPage(int page) {
         Collection<Rating> ratings = ratingRepository.findAllRatings(
                 PageRequest.of(page, PAGE_SIZE)
@@ -55,17 +61,25 @@ public class RatingServiceImpl implements RatingAdminService, RatingFrontService
     }
 
     @Transactional
+    @CachePut(value = "Rating", key = "#result.id")
     public RatingResponse updateStatus(RatingStatusRequest ratingStatusRequest) {
         Rating rating = ratingRepository.findById(ratingStatusRequest.getId()).orElseThrow();
 
         rating.setStatus(ratingStatusRequest.getStatus());
 
-        ratingRepository.save(rating);
+        ratingRepository.save(rating);;
+
+        cacheService.evictRatingPages();
+        cacheService.evictFilmRatings(rating.getFilm().getId());
+        cacheService.evictFilmConfirmedRatings(rating.getFilm().getId());
+        cacheService.evictRatingPagesByStatus();
+        cacheService.evictUserRatings(rating.getUser().getId());
 
         return ratingMapper.mapToRatingResponse(rating);
     }
 
     @Transactional
+    @Cacheable("RatingFilm")
     public FilmResponse getFilm(long id) {
         Rating rating = ratingRepository.findById(id).orElseThrow();
 
@@ -73,6 +87,7 @@ public class RatingServiceImpl implements RatingAdminService, RatingFrontService
     }
 
     @Transactional
+    @CachePut(value = "Rating", key = "#result.id")
     public RatingResponse add(RatingRequest ratingRequest) {
         if (ratingRequest.getRating() < 1 || ratingRequest.getRating() > 5) throw new IllegalArgumentException();
 
@@ -94,10 +109,15 @@ public class RatingServiceImpl implements RatingAdminService, RatingFrontService
 
         ratingRepository.save(rating);
 
+        cacheService.evictRatingPages();
+        cacheService.evictFilmRatings(rating.getFilm().getId());
+        cacheService.evictUserRatings(rating.getUser().getId());
+
         return ratingMapper.mapToRatingResponse(rating);
     }
 
     @Transactional
+    @CachePut(value = "Rating", key = "#result.id")
     public RatingResponse update(RatingRequest ratingRequest) throws AccessDeniedException {
         if (ratingRequest.getRating() < 1 || ratingRequest.getRating() > 5) throw new IllegalArgumentException();
 
@@ -115,10 +135,17 @@ public class RatingServiceImpl implements RatingAdminService, RatingFrontService
 
         ratingRepository.save(rating);
 
+        cacheService.evictRatingPages();
+        cacheService.evictFilmRatings(rating.getFilm().getId());
+        cacheService.evictFilmConfirmedRatings(rating.getFilm().getId());
+        cacheService.evictRatingPagesByStatus();
+        cacheService.evictUserRatings(rating.getUser().getId());
+
         return ratingMapper.mapToRatingResponse(rating);
     }
 
     @Transactional
+    @Cacheable("RatingPageByStatus")
     public Collection<RatingResponse> getByStatus(RatingStatus status, int page) {
         Collection<Rating> ratings;
 
@@ -137,6 +164,7 @@ public class RatingServiceImpl implements RatingAdminService, RatingFrontService
     }
 
     @Transactional
+    @Cacheable("RatingUser")
     public UserResponse getUser(long id) {
         Rating rating = ratingRepository.findById(id).orElseThrow();
 

@@ -13,6 +13,9 @@ import mc.project.filmBase.repository.RatingRepository;
 import mc.project.filmBase.repository.UserRepository;
 import mc.project.filmBase.service.admin.UserAdminService;
 import mc.project.filmBase.service.auth.UserService;
+import mc.project.filmBase.service.cache.CacheService;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,21 +29,24 @@ import java.util.Collection;
 public class UserServiceImpl implements UserAdminService, UserService {
     public static final int PAGE_SIZE = 20;
 
-    private final UserRepository userResponse;
+    private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final RatingRepository ratingRepository;
     private final RatingMapper ratingMapper;
+    private final CacheService cacheService;
 
     @Transactional
+    @Cacheable("User")
     public UserResponse get(long id) {
-        User user = userResponse.findById(id).orElseThrow();
+        User user = userRepository.findById(id).orElseThrow();
 
         return userMapper.mapToUserResponse(user);
     }
 
     @Transactional
+    @Cacheable("UserPage")
     public Collection<UserResponse> getPage(int page) {
-        Collection<User> users = userResponse.findAllUsers(
+        Collection<User> users = userRepository.findAllUsers(
                 PageRequest.of(page, PAGE_SIZE)
         );
 
@@ -48,19 +54,24 @@ public class UserServiceImpl implements UserAdminService, UserService {
     }
 
     @Transactional
-    public UserResponse update(UserLockedRequest userLockedRequest) {
-        User user = userResponse.findById(userLockedRequest.getId()).orElseThrow();
+    @CachePut(value = "User", key = "#result.id")
+    public UserResponse updateStatus(UserLockedRequest userLockedRequest) {
+        User user = userRepository.findById(userLockedRequest.getId()).orElseThrow();
 
         user.setAccountNonLocked(userLockedRequest.isAccountNonLocked());
 
-        userResponse.save(user);
+        userRepository.save(user);
+
+        cacheService.evictUserPages();
+        if (user.getRatings() != null) user.getRatings().forEach(rating -> cacheService.evictRatingUser(rating.getId()));
 
         return userMapper.mapToUserResponse(user);
     }
 
     @Transactional
+    @Cacheable("UserRatings")
     public Collection<RatingResponse> getRatings(long id, int page) {
-        User user = userResponse.findById(id).orElseThrow();
+        User user = userRepository.findById(id).orElseThrow();
 
         Collection<Rating> ratings = ratingRepository.findAllByUser(
                 user,
@@ -78,6 +89,6 @@ public class UserServiceImpl implements UserAdminService, UserService {
 
         if (userDetails == null) throw new NullPointerException();
 
-        return userResponse.findByUsername(userDetails.getUsername()).orElseThrow();
+        return userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
     }
 }

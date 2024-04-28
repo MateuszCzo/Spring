@@ -27,7 +27,7 @@ public class UserAdminController {
 
     @PutMapping
     public UserResponse updateAccountNonLocked(@RequestBody UserLockedRequest userLockedRequest) {
-        return userService.update(userLockedRequest);
+        return userService.updateStatus(userLockedRequest);
     }
 
     @GetMapping("/{id}/ratings")

@@ -3,9 +3,11 @@ package mc.project.filmBase.controller.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import mc.project.filmBase.dto.request.AuthenticationRequest;
+import mc.project.filmBase.dto.request.FilmRequest;
 import mc.project.filmBase.dto.request.RatingRequest;
 import mc.project.filmBase.dto.request.RegisterRequest;
 import mc.project.filmBase.dto.response.AuthenticationResponse;
+import mc.project.filmBase.dto.response.FilmResponse;
 import mc.project.filmBase.enums.FilmStatus;
 import mc.project.filmBase.enums.RatingStatus;
 import mc.project.filmBase.enums.UserRole;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,6 +37,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
 import java.util.Optional;
 
@@ -229,6 +233,71 @@ class AuthControllerTest {
         int status = mvcResult.getResponse().getStatus();
 
         assertEquals(status, 200);
+    }
+
+    @Test
+    @Transactional
+    void isTokenWorkingCorrectly() throws Exception {
+        // Given
+        FilmRequest filmRequest = FilmRequest.builder()
+                .status(FilmStatus.AFTER_PREMIERE)
+                .title("film_title")
+                .description("film_description")
+                .build();
+
+        String password = "test_password";
+
+        User user = User.builder()
+                .username("test_user")
+                .password(passwordEncoder.encode(password))
+                .credentialsNonExpired(true)
+                .enabled(true)
+                .accountNonLocked(true)
+                .accountNonExpired(true)
+                .role(UserRole.ADMIN)
+                .build();
+
+        userRepository.save(user);
+
+        AuthenticationRequest authenticationRequest = AuthenticationRequest.builder()
+                .username(user.getUsername())
+                .password(password)
+                .build();
+
+        // When
+        MvcResult mvcResult1 = mockMvc.perform(post("/auth/authenticate")
+                        .content(objectMapper.writeValueAsString(authenticationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is(200))
+                .andReturn();
+
+        AuthenticationResponse authenticationResponse = objectMapper.readValue(
+                mvcResult1.getResponse().getContentAsString(),
+                AuthenticationResponse.class
+        );
+
+        assertNotNull(authenticationResponse);
+        assertTrue(authenticationResponse.isRegistered());
+
+        MvcResult mvcResult2 = mockMvc.perform(post("/admin/film")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + authenticationResponse.getToken())
+                        .content(objectMapper.writeValueAsString(filmRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is(200))
+                .andReturn();
+
+        // Then
+        FilmResponse filmResponse = objectMapper.readValue(
+                mvcResult2.getResponse().getContentAsString(),
+                FilmResponse.class
+        );
+
+        assertNotNull(filmResponse);
+        assertEquals(filmRequest.getTitle(), filmResponse.getTitle());
+        assertEquals(filmRequest.getDescription(), filmResponse.getDescription());
+        assertEquals(filmRequest.getStatus(), filmResponse.getStatus());
     }
 
     @Test
