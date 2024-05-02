@@ -1,0 +1,5 @@
+FROM eclipse-terum
+ARG JAR_FILE=terget/*.jar
+COPY ${JAR_FILE} app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app.jar"]

@@ -1,0 +1,17 @@
+version: "3"
+services:
+  docker-exercise-db:
+    image: postgres:16.0
+    environment:
+      - POSTGRES_DB=exerciseDB
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+
+  docker-exercise-app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - docker-exercise-db
