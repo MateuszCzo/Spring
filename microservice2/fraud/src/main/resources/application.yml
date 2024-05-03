@@ -1,0 +1,13 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: fraud
+  datasource:
+    username: 'postgres'
+    password: 'password'
+    url: jdbc:postgresql://localhost:5432/fraud
+    initialization-mode: always
+    jpa:
+      show-sql: true
