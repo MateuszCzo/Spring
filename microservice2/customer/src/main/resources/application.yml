@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: customer
+
+  datasource:
+    username: 'postgres'
+    password: 'password'
+    url: jdbc:postgresql://localhost:5432/customer
+    initialization-mode: always
+    jpa:
+      show-sql: true
