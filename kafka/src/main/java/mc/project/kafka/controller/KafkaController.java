@@ -1,6 +1,7 @@
 package mc.project.kafka.controller;
 
 import lombok.RequiredArgsConstructor;
+import mc.project.kafka.dto.UserRequest;
 import mc.project.kafka.service.KafkaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,5 +16,11 @@ public class KafkaController {
     public ResponseEntity<String> publish(@RequestParam("message") String message) {
         kafkaService.sendMessage(message);
         return ResponseEntity.ok("Message sent");
+    }
+
+    @PostMapping("/user")
+    public ResponseEntity<String> publish(@RequestBody UserRequest userRequest) {
+        kafkaService.sendMessage(userRequest);
+        return ResponseEntity.ok("User sent");
     }
 }
