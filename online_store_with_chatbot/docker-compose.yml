@@ -1,0 +1,6 @@
+version: "3"
+services:
+  online_store:
+    build: ./online_store
+    ports:
+      - "8080:8080"
