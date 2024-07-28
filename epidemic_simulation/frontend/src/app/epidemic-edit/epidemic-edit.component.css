@@ -1,0 +1,13 @@
+.invalid {
+    border-color: red;
+}
+.server-information {
+    height: 25px;
+}
+.error {
+    font-size: small;
+    margin-left: 15px;
+}
+.form-error-message {
+    height: 25px;
+}

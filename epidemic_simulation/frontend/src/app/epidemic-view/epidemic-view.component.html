@@ -1,0 +1,40 @@
+<div class="d-flex flex-column">
+    <div class="container">
+        <h1>Epidemic: {{ epidemicParams?.name }}</h1>
+
+        <div class="col-md-12 mt-3 table-responsive">
+            <table class="w-100 table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <td>Name</td>
+                        <td>Population</td>
+                        <td>Infected</td>
+                        <td>R</td>
+                        <td>Mortality</td>
+                        <td>Recovery Time</td>
+                        <td>Death Time</td>
+                        <td>Simulation Time</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ epidemicParams?.name }}</td>
+                        <td>{{ epidemicParams?.population }}</td>
+                        <td>{{ epidemicParams?.infected }}</td>
+                        <td>{{ epidemicParams?.r }}</td>
+                        <td>{{ epidemicParams?.mortality }}</td>
+                        <td>{{ epidemicParams?.recoveryTime }}</td>
+                        <td>{{ epidemicParams?.deathTime }}</td>
+                        <td>{{ epidemicParams?.simulationTime }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-12 d-flex justify-content-center">
+            <div class="col-md-16">
+                <app-epidemic-graph [epidemicSimObs]="epidemicSimObs"></app-epidemic-graph>
+            </div>
+        </div>
+    </div>
+</div>

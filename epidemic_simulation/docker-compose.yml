@@ -1,0 +1,47 @@
+version: "3"
+services:
+  epidemic_database:
+    image: postgres:14.0
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: epidemic_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/data/postgres
+    networks:
+      - database
+
+  epidemic_backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - epidemic_database
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://epidemic_database:5432/epidemic_database
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      CORS_ALLOWED_ORIGIN: http://localhost:4200
+    networks:
+      - database
+      - api
+
+  epidemic_frontend:
+    build: ./frontend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./:/usr/src/app
+    networks:
+      - api
+
+networks:
+  database:
+    driver: bridge
+  api:
+    driver: bridge
+
+volumes:
+  postgres:

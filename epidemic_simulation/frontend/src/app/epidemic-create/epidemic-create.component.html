@@ -1,0 +1,140 @@
+<div class="container">
+    <div class="col-md-12 d-flex justify-content-center">
+        <div class="col-md-6">
+            <h1 class="mb-4 mt-1">Create Simulation</h1>
+
+            <form class="form" [formGroup]="epidemicSimForm" (ngSubmit)="simulateEpidemic()">
+                <div class="row">
+                    <div class="col-md-3 server-information"></div>
+                    <div class="col-md-9 server-information">
+                        <span class="error text-danger">{{ messages['main'] }}</span>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end align-items-center">
+                        <label class="form-label">Name</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="messages['name']">{{ messages['name'] }}</span>
+                        </div>
+                        <input type="text" class="form-control" formControlName="name" 
+                            [class.invalid]="isFieldInvalid('name')">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="isFieldRequired('name')">This field is required</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end align-items-center">
+                        <label class="form-label">Population</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="messages['population']">{{ messages['population'] }}</span>
+                        </div>
+                        <input type="number" class="form-control" formControlName="population" 
+                            [class.invalid]="isFieldInvalid('population')">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="isFieldRequired('population')">This field is required</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end align-items-center">
+                        <label class="form-label">Infected</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="messages['infected']">{{ messages['infected'] }}</span>
+                        </div>
+                        <input type="number" class="form-control" formControlName="infected" 
+                            [class.invalid]="isFieldInvalid('infected')">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="isFieldRequired('infected')">This field is required</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end align-items-center">
+                        <label class="form-label">R</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="messages['r']">{{ messages['r'] }}</span>
+                        </div>
+                        <input type="number" class="form-control" formControlName="r" 
+                            [class.invalid]="isFieldInvalid('r')">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="isFieldRequired('r')">This field is required</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end align-items-center">
+                        <label class="form-label">Mortality</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="messages['mortality']">{{ messages['mortality'] }}</span>
+                        </div>
+                        <input type="number" class="form-control" formControlName="mortality" 
+                            [class.invalid]="isFieldInvalid('mortality')">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="isFieldRequired('mortality')">This field is required</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end align-items-center">
+                        <label class="form-label">Recovery Time</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="messages['recoveryTime']">{{ messages['recoveryTime'] }}</span>
+                        </div>
+                        <input type="number" class="form-control" formControlName="recoveryTime" 
+                            [class.invalid]="isFieldInvalid('recoveryTime')">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="isFieldRequired('recoveryTime')">This field is required</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end align-items-center">
+                        <label class="form-label">Death Time</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="messages['deathTime']">{{ messages['deathTime'] }}</span>
+                        </div>
+                        <input type="number" class="form-control" formControlName="deathTime" 
+                            [class.invalid]="isFieldInvalid('deathTime')">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="isFieldRequired('deathTime')">This field is required</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end align-items-center">
+                        <label class="form-label">Simulation Time</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="messages['simulationTime']">{{ messages['simulationTime'] }}</span>
+                        </div>
+                        <input type="number" class="form-control" formControlName="simulationTime" 
+                            [class.invalid]="isFieldInvalid('simulationTime')">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="isFieldRequired('simulationTime')">This field is required</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex justify-content-end align-items-center">
+                        <label class="form-label">Algorithm</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="messages['algorithm']">{{ messages['algorithm'] }}</span>
+                        </div>
+                        <mat-form-field>
+                            <mat-label>Algorithm</mat-label>
+                            <mat-select formControlName="algorithm">
+                                <mat-option *ngFor="let algorithm of algorithms" [value]="algorithm">{{algorithm}}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <div class="form-error-message">
+                            <span class="error text-danger" *ngIf="isFieldRequired('algorithm')">This field is required</span>
+                        </div>
+                    </div>
+                    <div class="col-md-11 d-flex justify-content-end align-items-center">
+                        <button type="submit" class="btn btn-primary">Simulate</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

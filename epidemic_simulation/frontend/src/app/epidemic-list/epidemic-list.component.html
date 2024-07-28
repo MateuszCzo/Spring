@@ -1,0 +1,71 @@
+<div class="d-flex flex-column">
+    <div class="container">
+        <h1 class="mb-4 mt-1">List</h1>
+
+        <div class="col-md-12 d-flex">
+            <div class="col-md-8">
+                <form [formGroup]="searchForm" (ngSubmit)="searchEpidemic()">
+                    <div class="input-group">
+                        <input type="text" class="form-control search-input" placeholder="Search" formControlName="search" 
+                            [class.invalid]="isFieldInvalid('search')">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <button *ngIf="isSubmited" (click)="clearSearch()" type="button" class="btn btn-link">Clear</button>
+            </div>
+        </div>
+
+        <div class="col-md-12 mt-3 table-responsive">
+            <table class="w-100 table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <td>Name</td>
+                        <td>Population</td>
+                        <td>Infected</td>
+                        <td>R</td>
+                        <td>Mortality</td>
+                        <td>Recovery Time</td>
+                        <td>Death Time</td>
+                        <td>Simulation Time</td>
+                        <td>Actions</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let epidemic of epidemicList">
+                        <td>{{ epidemic.name }}</td>
+                        <td>{{ epidemic.population }}</td>
+                        <td>{{ epidemic.infected }}</td>
+                        <td>{{ epidemic.r }}</td>
+                        <td>{{ epidemic.mortality }}</td>
+                        <td>{{ epidemic.recoveryTime }}</td>
+                        <td>{{ epidemic.deathTime }}</td>
+                        <td>{{ epidemic.simulationTime }}</td>
+                        <td class="d-flex">
+                            <a class="btn btn-link btn-s" routerLink="/epidemic/view/{{ epidemic.id }}"><i class="bi bi-eye"></i></a>
+                            <a class="btn btn-link btn-s" routerLink="/epidemic/edit/{{ epidemic.id }}"><i class="bi bi-pencil"></i></a>
+                            <button (click)="deleteEpidemic(epidemic.id)" class="btn btn-link btn-s"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="col-md-12 d-flex justify-content-center">
+                <div class="col-md-6">
+                    <mat-paginator #paginator
+                        class="demo-paginator"
+                        (page)="handlePageEvent($event)"
+                        [length]="count"
+                        [pageSize]="pageSize"
+                        [disabled]="false"
+                        [showFirstLastButtons]="true"
+                        [pageSizeOptions]="[10]"
+                        [hidePageSize]="true"
+                        [pageIndex]="page"
+                        aria-label="Select page">
+                    </mat-paginator>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
