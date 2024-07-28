@@ -18,7 +18,7 @@ The application helps users understand the dynamics of epidemics and their impac
 
 ### Running the Application
 1. Clone the repository to your local machine:
-git clone https://github.com/yourusername/epidemic-simulation.git
+git clone https://github.com/MateuszCzo/epidemic-simulation.git
 cd epidemic-simulation
 
 2. Ensure that the following ports are open on your system:
