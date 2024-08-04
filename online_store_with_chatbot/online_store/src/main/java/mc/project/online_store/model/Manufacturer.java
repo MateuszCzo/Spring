@@ -1,16 +1,13 @@
 package mc.project.online_store.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
 @Entity
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class Manufacturer {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
