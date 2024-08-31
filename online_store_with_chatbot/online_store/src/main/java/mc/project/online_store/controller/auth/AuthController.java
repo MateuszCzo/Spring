@@ -1,5 +1,6 @@
 package mc.project.online_store.controller.auth;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.AuthenticationRequest;
 import mc.project.online_store.dto.request.RegisterRequest;
@@ -17,12 +18,16 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<RegisterResponse> register(
+            @Valid @RequestBody RegisterRequest registerRequest) {
+
         return ResponseEntity.ok(authService.register(registerRequest));
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
+    public ResponseEntity<AuthenticationResponse> authenticate(
+            @Valid @RequestBody AuthenticationRequest authenticationRequest) {
+
         return ResponseEntity.ok(authService.authenticate(authenticationRequest));
     }
 }

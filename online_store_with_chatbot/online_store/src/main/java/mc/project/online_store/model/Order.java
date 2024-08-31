@@ -3,7 +3,8 @@ package mc.project.online_store.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Data
@@ -30,5 +31,19 @@ public class Order {
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
-    private List<Product> attributes;
+    private Set<Product> products;
+
+    @ManyToOne
+    @JoinColumn(name = "address_id", nullable = false)
+    private Address address;
+
+    @ManyToOne
+    @JoinColumn(name = "contact_id", nullable = false)
+    private Contact contact;
+
+    @Column(nullable = false)
+    private float price;
+
+    @Column(nullable = false)
+    private Date date;
 }

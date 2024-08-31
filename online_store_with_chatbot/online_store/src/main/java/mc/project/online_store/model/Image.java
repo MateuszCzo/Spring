@@ -17,8 +17,5 @@ public class Image {
     private String path;
 
     @Column(nullable = false)
-    private String extension;
-
-    @Column(nullable = false)
     private String type;
 }

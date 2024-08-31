@@ -20,5 +20,5 @@ public class Attachment {
     private String path;
 
     @Column(nullable = false)
-    private String extension;
+    private String type;
 }

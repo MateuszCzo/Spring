@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -21,7 +21,7 @@ public class Product {
     @JoinColumn(name = "manufacturer_id", nullable = false)
     private Manufacturer manufacturer;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "image_id", nullable = false)
     private Image image;
 
@@ -35,7 +35,7 @@ public class Product {
     private String quantity;
 
     @Column(nullable = false)
-    private String price;
+    private float price;
 
     @Column(nullable = false)
     private boolean active;
@@ -52,7 +52,7 @@ public class Product {
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "image_id")
     )
-    private List<Image> images;
+    private Set<Image> images;
 
     @ManyToMany
     @JoinTable(
@@ -60,7 +60,7 @@ public class Product {
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "attachment_id")
     )
-    private List<Image> attachments;
+    private Set<Attachment> attachments;
 
     @ManyToMany
     @JoinTable(
@@ -68,5 +68,5 @@ public class Product {
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "attribute_id")
     )
-    private List<Image> attributes;
+    private Set<Attribute> attributes;
 }
