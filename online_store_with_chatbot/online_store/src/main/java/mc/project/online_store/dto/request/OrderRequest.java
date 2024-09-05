@@ -8,7 +8,9 @@ import java.util.Set;
 
 @Data
 public class OrderRequest {
-    private Payment payment;
-    private Delivery delivery;
-    private Set<Integer> productIds;
+    private long paymentId;
+    private long deliveryId;
+    private long addressId;
+    private long contactId;
+    private Set<Long> productIds;
 }

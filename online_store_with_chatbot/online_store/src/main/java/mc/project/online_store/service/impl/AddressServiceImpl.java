@@ -12,6 +12,7 @@ import mc.project.online_store.model.User;
 import mc.project.online_store.repository.AddressRepository;
 import mc.project.online_store.repository.UserRepository;
 import mc.project.online_store.service.admin.AddressService;
+import mc.project.online_store.service.auth.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -21,9 +22,10 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AddressServiceImpl implements AddressService, mc.project.online_store.service.front.AddressService {
-    final AddressRepository addressRepository;
-    final UserRepository userRepository;
-    final ObjectMapper objectMapper;
+    private final AddressRepository addressRepository;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -47,13 +49,27 @@ public class AddressServiceImpl implements AddressService, mc.project.online_sto
         return objectMapper.convertValue(address, AddressResponse.class);
     }
 
+    public AddressResponse postAddress(User user, AddressRequest request) {
+        Address address = objectMapper.convertValue(request, Address.class);
+        address.setUser(user);
+
+        addressRepository.save(address);
+
+        return objectMapper.convertValue(address, AddressResponse.class);
+    }
+
     @Override
     public AddressResponse postAddress(long userId, AddressRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(EntityNotFoundException::new);
 
-        Address address = objectMapper.convertValue(request, Address.class);
-        address.setUser(user);
+        return postAddress(user, request);
+    }
+
+    public AddressResponse putAddress(Address address, AddressRequest request) {
+        try {
+            address = objectMapper.updateValue(address, request);
+        } catch (JsonMappingException e) { }
 
         addressRepository.save(address);
 
@@ -65,13 +81,11 @@ public class AddressServiceImpl implements AddressService, mc.project.online_sto
         Address address = addressRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
 
-        try {
-            address = objectMapper.updateValue(address, request);
-        } catch (JsonMappingException e) { }
+        return putAddress(address, request);
+    }
 
-        addressRepository.save(address);
-
-        return objectMapper.convertValue(address, AddressResponse.class);
+    public void deleteAddress(Address address) {
+        addressRepository.delete(address);
     }
 
     @Override
@@ -79,6 +93,60 @@ public class AddressServiceImpl implements AddressService, mc.project.online_sto
         Address address = addressRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
 
-        addressRepository.delete(address);
+        deleteAddress(address);
+    }
+
+    @Override
+    public List<AddressResponse> getUserPage(int page, int pageSize) {
+        User user = userService.getLoggedInUser()
+                .orElseThrow(EntityNotFoundException::new);
+
+        Page<Address> addresses = addressRepository.findByUser(
+                user, PageRequest.of(page, pageSize));
+
+        return addresses
+                .map(address -> objectMapper.convertValue(address, AddressResponse.class))
+                .toList();
+    }
+
+    @Override
+    public AddressResponse getUserAddress(long id) {
+        User user = userService.getLoggedInUser()
+                .orElseThrow(EntityNotFoundException::new);
+
+        Address address = addressRepository.findByIdAndUser(id, user)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return objectMapper.convertValue(address, AddressResponse.class);
+    }
+
+    @Override
+    public AddressResponse postUserAddress(AddressRequest request) {
+        User user = userService.getLoggedInUser()
+                .orElseThrow(EntityNotFoundException::new);
+
+        return postAddress(user, request);
+    }
+
+    @Override
+    public AddressResponse putUserAddress(long id, AddressRequest request) {
+        User user = userService.getLoggedInUser()
+                .orElseThrow(EntityNotFoundException::new);
+
+        Address address = addressRepository.findByIdAndUser(id, user)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return putAddress(address, request);
+    }
+
+    @Override
+    public void deleteUserAddress(long id) {
+        User user = userService.getLoggedInUser()
+                .orElseThrow(EntityNotFoundException::new);
+
+        Address address = addressRepository.findByIdAndUser(id, user)
+                .orElseThrow(EntityNotFoundException::new);
+
+        deleteAddress(address);
     }
 }

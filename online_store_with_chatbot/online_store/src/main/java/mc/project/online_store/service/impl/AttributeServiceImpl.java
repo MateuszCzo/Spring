@@ -22,7 +22,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AttributeServiceImpl implements AttributeService {
+public class AttributeServiceImpl implements AttributeService, mc.project.online_store.service.front.AttributeService {
     private final AttributeRepository attributeRepository;
     private final AttributeTypeRepository attributeTypeRepository;
     private final ProductRepository productRepository;

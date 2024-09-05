@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import mc.project.online_store.dto.request.PaymentRequest;
+import mc.project.online_store.dto.response.OrderResponse;
 import mc.project.online_store.dto.response.PaymentResponse;
 import mc.project.online_store.exception.RelationConflictException;
 import mc.project.online_store.model.Order;
 import mc.project.online_store.model.Payment;
+import mc.project.online_store.model.User;
 import mc.project.online_store.repository.OrderRepository;
 import mc.project.online_store.repository.PaymentRepository;
+import mc.project.online_store.service.auth.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -33,6 +36,8 @@ class PaymentServiceImplTest {
     private OrderRepository orderRepository;
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private UserService userService;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -211,5 +216,52 @@ class PaymentServiceImplTest {
         verify(paymentRepository).findById(id);
         verify(orderRepository).countDistinctByPayment(payment);
         verify(paymentRepository, never()).delete(any());
+    }
+
+    @Test
+    public void givenValidOrderId_whenGetUserOrderPayment_thenReturnsPaymentResponse() {
+        long orderId = 1;
+        User user = new User();
+        Order order = mock();
+        Payment payment = new Payment();
+        PaymentResponse response = new PaymentResponse();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(orderRepository.findByIdAndUser(orderId, user)).thenReturn(Optional.of(order));
+        when(order.getPayment()).thenReturn(payment);
+        when(objectMapper.convertValue(payment, PaymentResponse.class)).thenReturn(response);
+
+        PaymentResponse serviceResponse = paymentService.getUserOrderPayment(orderId);
+
+        verify(userService).getLoggedInUser();
+        verify(orderRepository).findByIdAndUser(orderId, user);
+        verify(order).getPayment();
+
+        assertEquals(response, serviceResponse);
+    }
+
+    @Test
+    public void givenInvalidOrderId_whenGetUserOrderPayment_thenThrowsEntityNotFoundException() {
+        long orderId = 1;
+        User user = new User();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(orderRepository.findByIdAndUser(orderId, user)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> paymentService.getUserOrderPayment(orderId));
+
+        verify(userService).getLoggedInUser();
+        verify(orderRepository).findByIdAndUser(orderId, user);
+    }
+
+    @Test
+    public void givenInvalidUser_whenGetUserOrderPayment_thenThrowsEntityNotFoundException() {
+        long orderId = 1;
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> paymentService.getUserOrderPayment(orderId));
+
+        verify(userService).getLoggedInUser();
     }
 }

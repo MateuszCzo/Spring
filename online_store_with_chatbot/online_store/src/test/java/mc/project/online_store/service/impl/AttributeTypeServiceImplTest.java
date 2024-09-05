@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import mc.project.online_store.dto.request.AttributeTypeRequest;
 import mc.project.online_store.dto.response.AttributeTypeResponse;
+import mc.project.online_store.model.Attribute;
 import mc.project.online_store.model.AttributeType;
+import mc.project.online_store.repository.AttributeRepository;
 import mc.project.online_store.repository.AttributeTypeRepository;
 import mc.project.online_store.service.admin.AttributeService;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +29,8 @@ import static org.mockito.Mockito.*;
 class AttributeTypeServiceImplTest {
     @Mock
     private AttributeTypeRepository attributeTypeRepository;
+    @Mock
+    private AttributeRepository attributeRepository;
     @Mock
     private AttributeService attributeService;
     @Mock
@@ -159,5 +163,35 @@ class AttributeTypeServiceImplTest {
 
         verify(attributeService, never()).deleteAttributeByAttributeType(any());
         verify(attributeTypeRepository, never()).delete(any());
+    }
+
+    @Test
+    public void givenValidAttributeId_whenGetAttributeTypeByAttributeId_thenReturnsAttributeTypeResponse() {
+        long attributeId = 1;
+        Attribute attribute = mock();
+        AttributeType attributeType = new AttributeType();
+        AttributeTypeResponse response = new AttributeTypeResponse();
+
+        when(attributeRepository.findById(attributeId)).thenReturn(Optional.of(attribute));
+        when(attribute.getAttributeType()).thenReturn(attributeType);
+        when(objectMapper.convertValue(attributeType, AttributeTypeResponse.class)).thenReturn(response);
+
+        AttributeTypeResponse serviceResponse = attributeTypeService.getAttributeTypeByAttributeId(attributeId);
+
+        verify(attributeRepository).findById(attributeId);
+        verify(attribute).getAttributeType();
+
+        assertEquals(response, serviceResponse);
+    }
+
+    @Test
+    public void givenInvalidAttributeId_whenGetAttributeTypeByAttributeId_thenThrowsEntityNotFoundException() {
+        long attributeId = 1;
+
+        when(attributeRepository.findById(attributeId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> attributeTypeService.getAttributeTypeByAttributeId(attributeId));
+
+        verify(attributeRepository).findById(attributeId);
     }
 }

@@ -23,7 +23,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ManufacturerServiceImpl implements ManufacturerService {
+public class ManufacturerServiceImpl implements ManufacturerService, mc.project.online_store.service.front.ManufacturerService {
     private final ManufacturerRepository manufacturerRepository;
     private final ProductRepository productRepository;
     private final ObjectMapper objectMapper;

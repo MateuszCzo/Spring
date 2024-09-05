@@ -12,6 +12,7 @@ import mc.project.online_store.model.*;
 import mc.project.online_store.repository.*;
 import mc.project.online_store.service.admin.ImageService;
 import mc.project.online_store.service.admin.ProductService;
+import mc.project.online_store.service.auth.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -22,15 +23,17 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl implements ProductService, mc.project.online_store.service.front.ProductService {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final CategoryRepository categoryRepository;
     private final ManufacturerRepository manufacturerRepository;
     private final AttachmentRepository attachmentRepository;
     private final AttributeRepository attributeRepository;
+    private final CartRepository cartRepository;
     private final ObjectMapper objectMapper;
     private final ImageService imageService;
+    private final UserService userService;
 
     @Override
     public List<ProductResponse> getPage(String name, int page, int pageSize) {
@@ -143,5 +146,31 @@ public class ProductServiceImpl implements ProductService {
         product.getImages().forEach(imageService::deleteImage);
 
         productRepository.delete(product);
+    }
+
+    @Override
+    public List<ProductResponse> getUserOrderProduct(long orderId) {
+        User user = userService.getLoggedInUser()
+                .orElseThrow(EntityNotFoundException::new);
+
+        Order order = orderRepository.findByIdAndUser(orderId, user)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return order.getProducts().stream()
+                .map(product -> objectMapper.convertValue(product, ProductResponse.class))
+                .toList();
+    }
+
+    @Override
+    public List<ProductResponse> getUserCartProduct() {
+        User user = userService.getLoggedInUser()
+                .orElseThrow(EntityNotFoundException::new);
+
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return cart.getProducts().stream()
+                .map(product -> objectMapper.convertValue(product, ProductResponse.class))
+                .toList();
     }
 }

@@ -266,4 +266,72 @@ class CategoryServiceImplTest {
         verify(imageService, never()).deleteImage(any());
         verify(categoryRepository, never()).delete(any());
     }
+
+    @Test
+    public void givenValidParentId_whenGetPageByParentId_thenReturnsCategoryResponseList() {
+        long parentId = 1;
+        int page = 0;
+        int pageSize = 10;
+        Category parent = new Category();
+        Category category = new Category();
+        Page<Category> categoryPage = new PageImpl<>(List.of(category));
+        CategoryResponse response = new CategoryResponse();
+        PageRequest pageRequest = PageRequest.of(page, pageSize);
+
+        when(categoryRepository.findById(parentId)).thenReturn(Optional.of(parent));
+        when(categoryRepository.findByParent(parent, pageRequest)).thenReturn(categoryPage);
+        when(objectMapper.convertValue(category, CategoryResponse.class)).thenReturn(response);
+
+        List<CategoryResponse> serviceResponse = categoryService.getPageByParentId(parentId, page, pageSize);
+
+        verify(categoryRepository).findById(parentId);
+        verify(categoryRepository).findByParent(parent, pageRequest);
+
+        assertNotNull(serviceResponse);
+        assertEquals(1, serviceResponse.size());
+        assertEquals(response, serviceResponse.get(0));
+    }
+
+    @Test
+    public void givenInvalidParentId_whenGetPageByParentId_thenThrowsEntityNotFoundException() {
+        long parentId = 1;
+        int page = 0;
+        int pageSize = 10;
+
+        when(categoryRepository.findById(parentId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> categoryService.getPageByParentId(parentId, page, pageSize));
+
+        verify(categoryRepository).findById(parentId);
+    }
+
+    @Test
+    public void givenValidChildId_whenGetParent_thenReturnsCategoryResponse() {
+        long childId = 1;
+        Category child = mock();
+        Category category = new Category();
+        CategoryResponse response = new CategoryResponse();
+
+        when(categoryRepository.findById(childId)).thenReturn(Optional.of(child));
+        when(child.getParent()).thenReturn(category);
+        when(objectMapper.convertValue(category, CategoryResponse.class)).thenReturn(response);
+
+        CategoryResponse serviceResponse = categoryService.getParent(childId);
+
+        verify(categoryRepository).findById(childId);
+        verify(child).getParent();
+
+        assertEquals(response, serviceResponse);
+    }
+
+    @Test
+    public void givenInvalidChildId_thenGetParent_thenThrowsEntityNotFoundException() {
+        long childId = 1;
+
+        when(categoryRepository.findById(childId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> categoryService.getParent(childId));
+
+        verify(categoryRepository).findById(childId);
+    }
 }

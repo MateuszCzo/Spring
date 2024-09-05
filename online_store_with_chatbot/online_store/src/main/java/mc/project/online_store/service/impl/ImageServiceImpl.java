@@ -4,11 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.ImageRequest;
+import mc.project.online_store.dto.response.CategoryResponse;
 import mc.project.online_store.dto.response.ImageResponse;
 import mc.project.online_store.exception.RelationConflictException;
+import mc.project.online_store.model.Category;
 import mc.project.online_store.model.Image;
+import mc.project.online_store.model.Manufacturer;
 import mc.project.online_store.model.Product;
+import mc.project.online_store.repository.CategoryRepository;
 import mc.project.online_store.repository.ImageRepository;
+import mc.project.online_store.repository.ManufacturerRepository;
 import mc.project.online_store.repository.ProductRepository;
 import mc.project.online_store.service.admin.ImageService;
 import mc.project.online_store.service.util.FileService;
@@ -16,13 +21,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
-public class ImageServiceImpl implements ImageService {
+public class ImageServiceImpl implements ImageService, mc.project.online_store.service.front.ImageService {
     @Value("${file.path.image}")
     private String imageFilePath;
     private final ImageRepository imageRepository;
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final ManufacturerRepository manufacturerRepository;
     private final FileService fileService;
     private final ObjectMapper objectMapper;
 
@@ -112,5 +121,39 @@ public class ImageServiceImpl implements ImageService {
         productRepository.save(product);
 
         deleteImage(image);
+    }
+
+    @Override
+    public ImageResponse getCategoryImage(long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return objectMapper.convertValue(category.getImage(), ImageResponse.class);
+    }
+
+    @Override
+    public ImageResponse getManufacturerImage(long manufacturerId) {
+        Manufacturer manufacturer = manufacturerRepository.findById(manufacturerId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return objectMapper.convertValue(manufacturer.getImage(), ImageResponse.class);
+    }
+
+    @Override
+    public ImageResponse getProductImage(long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return objectMapper.convertValue(product.getImage(), ImageResponse.class);
+    }
+
+    @Override
+    public List<ImageResponse> getProductImages(long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return product.getImages().stream()
+                .map(image -> objectMapper.convertValue(image, ImageResponse.class))
+                .toList();
     }
 }

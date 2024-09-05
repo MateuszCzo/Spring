@@ -3,10 +3,15 @@ package mc.project.online_store.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import mc.project.online_store.dto.request.ImageRequest;
+import mc.project.online_store.dto.response.CategoryResponse;
 import mc.project.online_store.dto.response.ImageResponse;
+import mc.project.online_store.model.Category;
 import mc.project.online_store.model.Image;
+import mc.project.online_store.model.Manufacturer;
 import mc.project.online_store.model.Product;
+import mc.project.online_store.repository.CategoryRepository;
 import mc.project.online_store.repository.ImageRepository;
+import mc.project.online_store.repository.ManufacturerRepository;
 import mc.project.online_store.repository.ProductRepository;
 import mc.project.online_store.service.util.FileService;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +41,10 @@ class ImageServiceImplTest {
     private ImageRepository imageRepository;
     @Mock
     private ProductRepository productRepository;
+    @Mock
+    private CategoryRepository categoryRepository;
+    @Mock
+    private ManufacturerRepository manufacturerRepository;
     @Mock
     private ObjectMapper objectMapper;
     @Mock
@@ -276,5 +285,128 @@ class ImageServiceImplTest {
         verify(productRepository, never()).save(any());
         verify(fileService, never()).deleteFile(any());
         verify(imageRepository, never()).delete(any());
+    }
+
+    @Test
+    public void givenValidCategoryId_whenGetCategoryImage_thenReturnsImageResponse() {
+        long categoryId = 1;
+        Category category = mock();
+        Image image = new Image();
+        ImageResponse response = new ImageResponse();
+
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+        when(category.getImage()).thenReturn(image);
+        when(objectMapper.convertValue(image, ImageResponse.class)).thenReturn(response);
+
+        ImageResponse serviceResponse = imageService.getCategoryImage(categoryId);
+
+        verify(categoryRepository).findById(categoryId);
+        verify(category).getImage();
+
+        assertEquals(response, serviceResponse);
+    }
+
+    @Test
+    public void givenInvalidCategoryId_whenGetCategoryImage_thenThrowsEntityNotFoundException() {
+        long categoryId = 1;
+
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> imageService.getCategoryImage(categoryId));
+
+        verify(categoryRepository).findById(categoryId);
+    }
+
+    @Test
+    public void givenValidManufacturerId_whenGetManufacturerImage_thenReturnsImageResponse() {
+        long manufacturerId = 1;
+        Manufacturer manufacturer = mock();
+        Image image = new Image();
+        ImageResponse response = new ImageResponse();
+
+        when(manufacturerRepository.findById(manufacturerId)).thenReturn(Optional.of(manufacturer));
+        when(manufacturer.getImage()).thenReturn(image);
+        when(objectMapper.convertValue(image, ImageResponse.class)).thenReturn(response);
+
+        ImageResponse serviceResponse = imageService.getCategoryImage(manufacturerId);
+
+        verify(manufacturerRepository).findById(manufacturerId);
+        verify(manufacturer).getImage();
+
+        assertEquals(response, serviceResponse);
+    }
+
+    @Test
+    public void givenInvalidManufacturerId_whenGetManufacturerImage_thenThrowsEntityNotFoundException() {
+        long manufacturerId = 1;
+
+        when(manufacturerRepository.findById(manufacturerId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> imageService.getCategoryImage(manufacturerId));
+
+        verify(manufacturerRepository).findById(manufacturerId);
+    }
+
+    @Test
+    public void givenValidProductId_whenGetProductImage_thenReturnsImageResponse() {
+        long productId = 1;
+        Product product = mock();
+        Image image = new Image();
+        ImageResponse response = new ImageResponse();
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(product.getImage()).thenReturn(image);
+        when(objectMapper.convertValue(image, ImageResponse.class)).thenReturn(response);
+
+        ImageResponse serviceResponse = imageService.getProductImage(productId);
+
+        verify(productRepository).findById(productId);
+        verify(product).getImage();
+
+        assertEquals(response, serviceResponse);
+    }
+
+    @Test
+    public void givenInvalidProductId_whenGetProductImage_thenThrowsEntityNotFoundException() {
+        long productId = 1;
+
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> imageService.getProductImage(productId));
+
+        verify(productRepository).findById(productId);
+    }
+
+    @Test
+    public void givenValidProductId_whenGetProductImages_thenReturnsImageResponseList() {
+        long productId = 1;
+        Product product = mock();
+        Image image = new Image();
+        Set<Image> imageSet = new HashSet<>(List.of(image));
+        ImageResponse response = new ImageResponse();
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(product.getImages()).thenReturn(imageSet);
+        when(objectMapper.convertValue(image, ImageResponse.class)).thenReturn(response);
+
+        List<ImageResponse> serviceResponse = imageService.getProductImages(productId);
+
+        verify(productRepository).findById(productId);
+        verify(product).getImages();
+
+        assertNotNull(serviceResponse);
+        assertEquals(1, serviceResponse.size());
+        assertEquals(response, serviceResponse.get(0));
+    }
+
+    @Test
+    public void givenInvalidProductId_whenGetProductImages_thenThrowsEntityNotFoundException() {
+        long productId = 1;
+
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> imageService.getProductImages(productId));
+
+        verify(productRepository).findById(productId);
     }
 }

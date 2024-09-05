@@ -10,9 +10,11 @@ import mc.project.online_store.dto.response.PaymentResponse;
 import mc.project.online_store.exception.RelationConflictException;
 import mc.project.online_store.model.Order;
 import mc.project.online_store.model.Payment;
+import mc.project.online_store.model.User;
 import mc.project.online_store.repository.OrderRepository;
 import mc.project.online_store.repository.PaymentRepository;
 import mc.project.online_store.service.admin.PaymentService;
+import mc.project.online_store.service.auth.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -21,10 +23,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentServiceImpl implements PaymentService {
+public class PaymentServiceImpl implements PaymentService, mc.project.online_store.service.front.PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper;
+    private final UserService userService;
 
     @Override
     public List<PaymentResponse> getPage(String name, int page, int pageSize) {
@@ -88,5 +91,16 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         paymentRepository.delete(payment);
+    }
+
+    @Override
+    public PaymentResponse getUserOrderPayment(long orderId) {
+        User user = userService.getLoggedInUser()
+                .orElseThrow(EntityNotFoundException::new);
+
+        Order order = orderRepository.findByIdAndUser(orderId, user)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return objectMapper.convertValue(order.getPayment(), PaymentResponse.class);
     }
 }

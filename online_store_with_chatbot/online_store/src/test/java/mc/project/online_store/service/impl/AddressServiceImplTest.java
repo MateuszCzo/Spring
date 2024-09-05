@@ -9,6 +9,7 @@ import mc.project.online_store.model.Address;
 import mc.project.online_store.model.User;
 import mc.project.online_store.repository.AddressRepository;
 import mc.project.online_store.repository.UserRepository;
+import mc.project.online_store.service.auth.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -32,6 +33,8 @@ class AddressServiceImplTest {
     private UserRepository userRepository;
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private UserService userService;
 
     @InjectMocks
     private AddressServiceImpl addressService;
@@ -199,5 +202,205 @@ class AddressServiceImplTest {
 
         verify(addressRepository).findById(id);
         verify(addressRepository, never()).delete(any());
+    }
+
+    @Test
+    public void whenGetUserAddress_thenReturnsAddressResponse() {
+        int page = 0;
+        int pageSize = 10;
+        User user = new User();
+        Address address = new Address();
+        Page<Address> addressPage = new PageImpl<>(List.of(address));
+        AddressResponse response = new AddressResponse();
+        PageRequest pageRequest = PageRequest.of(page, pageSize);
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(addressRepository.findByUser(user, pageRequest)).thenReturn(addressPage);
+        when(objectMapper.convertValue(address, AddressResponse.class)).thenReturn(response);
+
+        List<AddressResponse> serviceResponse = addressService.getUserPage(page, pageSize);
+
+        verify(userService).getLoggedInUser();
+        verify(addressRepository).findByUser(user, pageRequest);
+
+        assertNotNull(serviceResponse);
+        assertEquals(1, serviceResponse.size());
+        assertEquals(response, serviceResponse.get(0));
+    }
+
+    @Test
+    public void givenInvalidUser_whenGetUserAddress_thenThrowsEntityNotFoundException() {
+        int page = 0;
+        int pageSize = 10;
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> addressService.getUserPage(page, pageSize));
+
+        verify(userService).getLoggedInUser();
+    }
+
+    @Test
+    public void givenValidId_whenGetUserAddress_thenReturnsAddressResponse() {
+        long id = 1;
+        User user = new User();
+        Address address = new Address();
+        AddressResponse response = new AddressResponse();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(addressRepository.findByIdAndUser(id, user)).thenReturn(Optional.of(address));
+        when(objectMapper.convertValue(address, AddressResponse.class)).thenReturn(response);
+
+        AddressResponse serviceResponse = addressService.getUserAddress(id);
+
+        verify(userService).getLoggedInUser();
+        verify(addressRepository).findByIdAndUser(id, user);
+
+        assertEquals(response, serviceResponse);
+    }
+
+    @Test
+    public void givenValidIdAndInvalidUser_whenGetUserAddress_thenThrowsEntityNotFoundException() {
+        long id = 1;
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> addressService.getUserAddress(id));
+
+        verify(userService).getLoggedInUser();
+    }
+
+    @Test
+    public void givenInvalidId_whenGetUserAddress_thenThrowsEntityNotFoundException() {
+        long id = 1;
+        User user = new User();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(addressRepository.findByIdAndUser(id, user)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> addressService.getUserAddress(id));
+
+        verify(userService).getLoggedInUser();
+        verify(addressRepository).findByIdAndUser(id, user);
+    }
+
+    @Test
+    public void givenValidAddressRequest_whenPostUserAddress_thenReturnsAddressResponse() {
+        AddressRequest request = new AddressRequest();
+        User user = new User();
+        Address address = new Address();
+        AddressResponse response = new AddressResponse();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(objectMapper.convertValue(request, Address.class)).thenReturn(address);
+        when(objectMapper.convertValue(address, AddressResponse.class)).thenReturn(response);
+
+        AddressResponse serviceResponse = addressService.postUserAddress(request);
+
+        verify(userService).getLoggedInUser();
+        verify(addressRepository).save(address);
+
+        assertEquals(response, serviceResponse);
+    }
+
+    @Test
+    public void givenInvalidUser_whenPostUserAddress_thenThrowsEntityNotFoundException() {
+        AddressRequest request = new AddressRequest();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> addressService.postUserAddress(request));
+
+        verify(userService).getLoggedInUser();
+    }
+
+    @Test
+    public void givenValidIdAndAddressRequest_whenPutAddress_thenReturnsAddressResponse() throws JsonMappingException {
+        long id = 1;
+        AddressRequest request = new AddressRequest();
+        User user = new User();
+        Address address = new Address();
+        AddressResponse response = new AddressResponse();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(addressRepository.findByIdAndUser(id, user)).thenReturn(Optional.of(address));
+        when(objectMapper.updateValue(address, request)).thenReturn(address);
+        when(objectMapper.convertValue(address, AddressResponse.class)).thenReturn(response);
+
+        AddressResponse serviceResponse = addressService.putUserAddress(id, request);
+
+        verify(userService).getLoggedInUser();
+        verify(addressRepository).findByIdAndUser(id, user);
+        verify(objectMapper).updateValue(address, request);
+        verify(addressRepository).save(address);
+
+        assertEquals(response, serviceResponse);
+    }
+
+    @Test
+    public void givenInvalidUser_whenPutAddress_thenThrowsEntityNotFoundException() {
+        long id = 1;
+        AddressRequest request = new AddressRequest();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> addressService.putAddress(id, request));
+
+        verify(userService).getLoggedInUser();
+    }
+
+    @Test
+    public void givenInvalidIdAndAddressRequest_whenPutAddress_thenThrowsEntityNotFoundException() {
+        long id = 1;
+        AddressRequest request = new AddressRequest();
+        User user = new User();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(addressRepository.findByIdAndUser(id, user)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> addressService.putUserAddress(id, request));
+
+        verify(addressRepository).findByIdAndUser(id, user);
+    }
+
+    @Test
+    public void givenValidId_whenDeleteUserAddress_thenReturnsVoid() {
+        long id = 1;
+        User user = new User();
+        Address address = new Address();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(addressRepository.findByIdAndUser(id, user)).thenReturn(Optional.of(address));
+
+        addressService.deleteUserAddress(id);
+
+        verify(userService).getLoggedInUser();
+        verify(addressRepository).findByIdAndUser(id, user);
+        verify(addressRepository).delete(address);
+    }
+
+    @Test
+    public void givenInvalidId_whenDeleteUserAddress_thenThrowsEntityNotFoundException() {
+        long id = 1;
+        User user = new User();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(addressRepository.findByIdAndUser(id, user)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> addressService.deleteUserAddress(id));
+
+        verify(addressRepository.findByIdAndUser(id, user));
+        verify(addressRepository, never()).delete(any());
+    }
+
+    @Test
+    public void givenInvalidUser_whenDeleteUserAddress_thenThrowsEntityNotFoundException() {
+        long id = 1;
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> addressService.deleteUserAddress(id));
+
+        verify(userService).getLoggedInUser();
     }
 }

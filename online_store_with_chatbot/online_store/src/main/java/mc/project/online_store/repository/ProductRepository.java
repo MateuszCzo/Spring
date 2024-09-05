@@ -16,7 +16,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     int countDistinctByManufacturer(Manufacturer manufacturer);
 
-    Set<Product> findByIdIn(Collection<Integer> productIds);
+    Set<Product> findByIdIn(Collection<Long> productIds);
 
     Page<Product> findByNameContaining(String name, Pageable pageable);
 

@@ -9,4 +9,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Page<Category> findByNameContaining(String name, Pageable pageable);
 
     int countDistinctByParent(Category category);
+
+    Page<Category> findByParent(Category parent, Pageable pageable);
 }

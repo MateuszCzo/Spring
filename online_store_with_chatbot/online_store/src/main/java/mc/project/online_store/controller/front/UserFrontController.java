@@ -1,8 +1,7 @@
 package mc.project.online_store.controller.front;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import mc.project.online_store.service.front.UserService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,8 +9,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserFrontController {
-    @GetMapping()
-    public ResponseEntity<?> get() {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
+    private UserService userService;
 }

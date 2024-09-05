@@ -1,0 +1,27 @@
+test -
+    - contact getPageByUserId postContact putContact
+    - order getPageByUserId
+
+cart & order - product quantity
+
+front controllers, services, tests
+
+image controller - get content
+
+order check product quantity
+
+search filters
+
+register - send email
+
+user - change email & password
+
+OrderRequest - objects to id
+
+order - check if product is active
+
+order - admin service - find payment & order put in order
+
+contact & address - can not be change when order is using it
+
+order - delete items in cart when user makes request

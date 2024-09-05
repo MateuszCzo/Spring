@@ -7,7 +7,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.AttributeTypeRequest;
 import mc.project.online_store.dto.response.AttributeTypeResponse;
+import mc.project.online_store.model.Attribute;
 import mc.project.online_store.model.AttributeType;
+import mc.project.online_store.repository.AttributeRepository;
 import mc.project.online_store.repository.AttributeTypeRepository;
 import mc.project.online_store.service.admin.AttributeService;
 import mc.project.online_store.service.admin.AttributeTypeService;
@@ -19,8 +21,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AttributeTypeServiceImpl implements AttributeTypeService {
+public class AttributeTypeServiceImpl implements AttributeTypeService, mc.project.online_store.service.front.AttributeTypeService {
     private final AttributeTypeRepository attributeTypeRepository;
+    private final AttributeRepository attributeRepository;
     private final AttributeService attributeService;
     private final ObjectMapper objectMapper;
 
@@ -74,5 +77,13 @@ public class AttributeTypeServiceImpl implements AttributeTypeService {
         attributeService.deleteAttributeByAttributeType(attributeType);
 
         attributeTypeRepository.delete(attributeType);
+    }
+
+    @Override
+    public AttributeTypeResponse getAttributeTypeByAttributeId(long attributeId) {
+        Attribute attribute = attributeRepository.findById(attributeId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return objectMapper.convertValue(attribute.getAttributeType(), AttributeTypeResponse.class);
     }
 }

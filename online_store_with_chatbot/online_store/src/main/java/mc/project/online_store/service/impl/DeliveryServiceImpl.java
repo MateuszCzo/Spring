@@ -20,7 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class DeliveryServiceImpl implements DeliveryService {
+public class DeliveryServiceImpl implements DeliveryService, mc.project.online_store.service.front.DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper;

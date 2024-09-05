@@ -23,7 +23,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl implements CategoryService, mc.project.online_store.service.front.CategoryService {
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final ObjectMapper objectMapper;
@@ -116,5 +116,26 @@ public class CategoryServiceImpl implements CategoryService {
         imageService.deleteImage(category.getImage());
 
         categoryRepository.delete(category);
+    }
+
+    @Override
+    public List<CategoryResponse> getPageByParentId(long parentId, int page, int pageSize) {
+        Category parent = categoryRepository.findById(parentId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        Page<Category> categories = categoryRepository.findByParent(
+                parent, PageRequest.of(page, pageSize));
+
+        return categories
+                .map(category -> objectMapper.convertValue(category, CategoryResponse.class))
+                .toList();
+    }
+
+    @Override
+    public CategoryResponse getParent(long childId) {
+        Category child = categoryRepository.findById(childId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return objectMapper.convertValue(child.getParent(), CategoryResponse.class);
     }
 }
