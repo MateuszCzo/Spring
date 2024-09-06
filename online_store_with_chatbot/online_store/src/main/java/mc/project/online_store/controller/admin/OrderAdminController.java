@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.OrderRequest;
 import mc.project.online_store.dto.response.OrderResponse;
+import mc.project.online_store.model.OrderProduct;
 import mc.project.online_store.service.admin.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,16 +45,6 @@ public class OrderAdminController {
             @PathVariable(name = "id") long id) {
 
         OrderResponse response = orderService.getOrder(id);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @PutMapping("/order/{id}")
-    public ResponseEntity<OrderResponse> putOrder(
-            @PathVariable(name = "id") long id,
-            @Valid @RequestBody OrderRequest request) {
-
-        OrderResponse response = orderService.putOrder(id, request);
 
         return ResponseEntity.ok(response);
     }

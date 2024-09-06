@@ -1,12 +1,12 @@
 package mc.project.online_store.dto.response;
 
 import lombok.Data;
-import mc.project.online_store.model.Delivery;
-import mc.project.online_store.model.Payment;
+
+import java.util.Date;
 
 @Data
 public class OrderResponse {
     private long id;
-    private Payment payment;
-    private Delivery delivery;
+    private float price;
+    private Date date;
 }

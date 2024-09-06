@@ -7,9 +7,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.AddressRequest;
 import mc.project.online_store.dto.response.AddressResponse;
+import mc.project.online_store.exception.RelationConflictException;
 import mc.project.online_store.model.Address;
+import mc.project.online_store.model.Order;
 import mc.project.online_store.model.User;
 import mc.project.online_store.repository.AddressRepository;
+import mc.project.online_store.repository.OrderRepository;
 import mc.project.online_store.repository.UserRepository;
 import mc.project.online_store.service.admin.AddressService;
 import mc.project.online_store.service.auth.UserService;
@@ -24,6 +27,7 @@ import java.util.List;
 public class AddressServiceImpl implements AddressService, mc.project.online_store.service.front.AddressService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
     private final UserService userService;
     private final ObjectMapper objectMapper;
 
@@ -67,6 +71,12 @@ public class AddressServiceImpl implements AddressService, mc.project.online_sto
     }
 
     public AddressResponse putAddress(Address address, AddressRequest request) {
+        int orderCount = orderRepository.countDistinctByAddress(address);
+
+        if (orderCount > 0) {
+            throw new RelationConflictException("Cannot change address - address contains order");
+        }
+
         try {
             address = objectMapper.updateValue(address, request);
         } catch (JsonMappingException e) { }

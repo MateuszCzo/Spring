@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import mc.project.online_store.dto.request.ProductRequest;
+import mc.project.online_store.dto.response.CartProductResponse;
+import mc.project.online_store.dto.response.OrderProductResponse;
 import mc.project.online_store.dto.response.ProductResponse;
 import mc.project.online_store.exception.RelationConflictException;
 import mc.project.online_store.model.*;
@@ -47,6 +49,10 @@ class ProductServiceImplTest {
     @Mock
     private CartRepository cartRepository;
     @Mock
+    private OrderProductRepository orderProductRepository;
+    @Mock
+    private CartProductRepository cartProductRepository;
+    @Mock
     private ObjectMapper objectMapper;
     @Mock
     private ImageService imageService;
@@ -81,43 +87,6 @@ class ProductServiceImplTest {
         assertNotNull(serviceResponse);
         assertEquals(1, serviceResponse.size());
         assertEquals(response, serviceResponse.get(0));
-    }
-
-    @Test
-    public void givenValidOrderId_whenGetPageByOrderId_thenReturnsProductResponseList() {
-        long orderId = 1;
-        int page = 0;
-        int pageSize = 10;
-        Order order = mock();
-        Product product = new Product();
-        Set<Product> productSet = new HashSet<>(List.of(product));
-        ProductResponse response = new ProductResponse();
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-        when(objectMapper.convertValue(product, ProductResponse.class)).thenReturn(response);
-        when(order.getProducts()).thenReturn(productSet);
-
-        List<ProductResponse> serviceResponse = productService.getPageByOrderId(orderId, page, pageSize);
-
-        verify(orderRepository).findById(orderId);
-        verify(order).getProducts();
-
-        assertNotNull(serviceResponse);
-        assertEquals(1, serviceResponse.size());
-        assertEquals(response, serviceResponse.get(0));
-    }
-
-    @Test
-    public void givenInvalidOrderId_whenGetPageByOrderId_thenThrowsEntityNotFoundException() {
-        long orderId = 1;
-        int page = 0;
-        int pageSize = 10;
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> productService.getPageByOrderId(orderId, page, pageSize));
-
-        verify(orderRepository).findById(orderId);
     }
 
     @Test
@@ -439,24 +408,26 @@ class ProductServiceImplTest {
     }
 
     @Test
-    public void givenValidOrderId_whenGetUserOrderProduct_thenReturnsProductResponseList() {
+    public void givenValidOrderId_whenGetOrderProductList_thenReturnsOrderProductResponseList() {
         long orderId = 1;
-        User user = new User();
-        Order order = mock();
+        Order order = new Order();
         Product product = new Product();
-        Set<Product> productSet = new HashSet<>(List.of(product));
-        ProductResponse response = new ProductResponse();
+        OrderProduct orderProduct = mock();
+        Set<OrderProduct> orderProductSet = new HashSet<>(List.of(orderProduct));
+        OrderProductResponse response = mock();
+        ProductResponse productResponse = new ProductResponse();
 
-        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
-        when(orderRepository.findByIdAndUser(orderId, user)).thenReturn(Optional.of(order));
-        when(order.getProducts()).thenReturn(productSet);
-        when(objectMapper.convertValue(product, ProductResponse.class)).thenReturn(response);
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(orderProductRepository.findByOrder(order)).thenReturn(orderProductSet);
+        when(orderProduct.getProduct()).thenReturn(product);
+        when(objectMapper.convertValue(orderProduct, OrderProductResponse.class)).thenReturn(response);
+        when(objectMapper.convertValue(product, ProductResponse.class)).thenReturn(productResponse);
 
-        List<ProductResponse> serviceResponse = productService.getUserOrderProduct(orderId);
+        List<OrderProductResponse> serviceResponse = productService.getOrderProductList(orderId);
 
-        verify(userService).getLoggedInUser();
-        verify(orderRepository).findByIdAndUser(orderId, user);
-        verify(order).getProducts();
+        verify(orderRepository).findById(orderId);
+        verify(orderProductRepository).findByOrder(order);
+        verify(response).setProductResponse(productResponse);
 
         assertNotNull(serviceResponse);
         assertEquals(1, serviceResponse.size());
@@ -464,47 +435,95 @@ class ProductServiceImplTest {
     }
 
     @Test
-    public void givenInvalidId_whenGetUserOrderProduct_thenThrowsEntityNotFoundException() {
+    public void givenInvalidOrderId_whenGetOrderProductList_thenThrowsEntityNotFoundException() {
+        long orderId = 1;
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> productService.getOrderProductList(orderId));
+
+        verify(orderRepository).findById(orderId);
+    }
+
+    @Test
+    public void givenValidOrderId_whenGetUserOrderProductList_thenReturnsOrderProductResponseList() {
+        long orderId = 1;
+        User user = new User();
+        Order order = new Order();
+        Product product = new Product();
+        OrderProduct orderProduct = mock();
+        Set<OrderProduct> orderProductSet = new HashSet<>(List.of(orderProduct));
+        OrderProductResponse response = mock();
+        ProductResponse productResponse = new ProductResponse();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(orderRepository.findByIdAndUser(orderId, user)).thenReturn(Optional.of(order));
+        when(orderProductRepository.findByOrder(order)).thenReturn(orderProductSet);
+        when(orderProduct.getProduct()).thenReturn(product);
+        when(objectMapper.convertValue(orderProduct, OrderProductResponse.class)).thenReturn(response);
+        when(objectMapper.convertValue(product, ProductResponse.class)).thenReturn(productResponse);
+
+        List<OrderProductResponse> serviceResponse = productService.getUserOrderProductList(orderId);
+
+        verify(userService).getLoggedInUser();
+        verify(orderRepository).findByIdAndUser(orderId, user);
+        verify(orderProductRepository).findByOrder(order);
+        verify(orderProduct).getProduct();
+        verify(response).setProductResponse(productResponse);
+
+        assertNotNull(serviceResponse);
+        assertEquals(1, serviceResponse.size());
+        assertEquals(response, serviceResponse.get(0));
+    }
+
+    @Test
+    public void givenInvalidUser_whenGetUserOrderProductList_thenThrowsEntityNotFoundException() {
+        long orderId = 1;
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> productService.getUserOrderProductList(orderId));
+
+        verify(userService).getLoggedInUser();
+    }
+
+    @Test
+    public void givenInvalidOrderId_whenGetUserOrderProductList_thenThrowsEntityNotFoundException() {
         long orderId = 1;
         User user = new User();
 
         when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
         when(orderRepository.findByIdAndUser(orderId, user)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> productService.getUserOrderProduct(orderId));
+        assertThrows(EntityNotFoundException.class, () -> productService.getUserOrderProductList(orderId));
 
         verify(orderRepository).findByIdAndUser(orderId, user);
     }
 
     @Test
-    public void givenInvalidUser_whenGetUserOrderProduct_thenThrowsEntityNotFoundException() {
-        long orderId = 1;
-
-        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> productService.getUserOrderProduct(orderId));
-
-        verify(userService).getLoggedInUser();
-    }
-
-    @Test
-    public void whenGetUserCartProduct_thenReturnsProductResponseList() {
+    public void whenGetUserCartProductList_thenReturnsCartProductResponseList() {
         User user = new User();
-        Cart cart = mock();
+        Cart cart = new Cart();
         Product product = new Product();
-        Set<Product> productSet = new HashSet<>(List.of(product));
-        ProductResponse response = new ProductResponse();
+        CartProduct cartProduct = mock();
+        Set<CartProduct> cartProductSet = new HashSet<>(List.of(cartProduct));
+        CartProductResponse response = mock();
+        ProductResponse productResponse = new ProductResponse();
 
         when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
         when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
-        when(cart.getProducts()).thenReturn(productSet);
-        when(objectMapper.convertValue(product, ProductResponse.class)).thenReturn(response);
+        when(cartProductRepository.findByCart(cart)).thenReturn(cartProductSet);
+        when(cartProduct.getProduct()).thenReturn(product);
+        when(objectMapper.convertValue(cartProduct, CartProductResponse.class)).thenReturn(response);
+        when(objectMapper.convertValue(product, ProductResponse.class)).thenReturn(productResponse);
 
-        List<ProductResponse> serviceResponse = productService.getUserCartProduct();
+        List<CartProductResponse> serviceResponse = productService.getUserCartProductList();
 
         verify(userService).getLoggedInUser();
         verify(cartRepository).findByUser(user);
-        verify(cart).getProducts();
+        verify(cartProductRepository).findByCart(cart);
+        verify(cartProduct).getProduct();
+        verify(response).setProductResponse(productResponse);
 
         assertNotNull(serviceResponse);
         assertEquals(1, serviceResponse.size());
@@ -512,23 +531,23 @@ class ProductServiceImplTest {
     }
 
     @Test
-    public void givenInvalidCart_whenGetUserCartProduct_thenReturnsProductResponseList() {
+    public void givenInvalidUser_whenGetUserCartProductList_thenThrowsEntityNotFoundException() {
+        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> productService.getUserCartProductList());
+
+        verify(userService).getLoggedInUser();
+    }
+
+    @Test
+    public void givenInvalidCart_whenGetUserCartProductList_thenThrows() {
         User user = new User();
 
         when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
         when(cartRepository.findByUser(user)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> productService.getUserCartProduct());
+        assertThrows(EntityNotFoundException.class, () -> productService.getUserCartProductList());
 
         verify(cartRepository).findByUser(user);
-    }
-
-    @Test
-    public void givenInvalidUser_whenGetUserCartProduct_thenReturnsProductResponseList() {
-        when(userService.getLoggedInUser()).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> productService.getUserCartProduct());
-
-        verify(userService).getLoggedInUser();
     }
 }

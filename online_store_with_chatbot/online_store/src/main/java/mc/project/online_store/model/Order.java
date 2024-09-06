@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.Date;
-import java.util.Set;
 
 @Entity
 @Data
@@ -25,14 +24,6 @@ public class Order {
     @JoinColumn(name = "delivery_id", nullable = false)
     private Delivery delivery;
 
-    @ManyToMany
-    @JoinTable(
-            name = "order_product",
-            joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private Set<Product> products;
-
     @ManyToOne
     @JoinColumn(name = "address_id", nullable = false)
     private Address address;
@@ -41,8 +32,8 @@ public class Order {
     @JoinColumn(name = "contact_id", nullable = false)
     private Contact contact;
 
-    @Column(nullable = false)
-    private float price;
+    @Column(name = "final_price", nullable = false)
+    private float finalPrice;
 
     @Column(nullable = false)
     private Date date;

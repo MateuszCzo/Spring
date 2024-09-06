@@ -3,7 +3,7 @@ package mc.project.online_store.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import mc.project.online_store.dto.request.ImageRequest;
-import mc.project.online_store.dto.response.CategoryResponse;
+import mc.project.online_store.dto.response.ImageContentResponse;
 import mc.project.online_store.dto.response.ImageResponse;
 import mc.project.online_store.model.Category;
 import mc.project.online_store.model.Image;
@@ -21,6 +21,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -328,7 +330,7 @@ class ImageServiceImplTest {
         when(manufacturer.getImage()).thenReturn(image);
         when(objectMapper.convertValue(image, ImageResponse.class)).thenReturn(response);
 
-        ImageResponse serviceResponse = imageService.getCategoryImage(manufacturerId);
+        ImageResponse serviceResponse = imageService.getManufacturerImage(manufacturerId);
 
         verify(manufacturerRepository).findById(manufacturerId);
         verify(manufacturer).getImage();
@@ -342,7 +344,7 @@ class ImageServiceImplTest {
 
         when(manufacturerRepository.findById(manufacturerId)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> imageService.getCategoryImage(manufacturerId));
+        assertThrows(EntityNotFoundException.class, () -> imageService.getManufacturerImage(manufacturerId));
 
         verify(manufacturerRepository).findById(manufacturerId);
     }
@@ -408,5 +410,73 @@ class ImageServiceImplTest {
         assertThrows(EntityNotFoundException.class, () -> imageService.getProductImages(productId));
 
         verify(productRepository).findById(productId);
+    }
+
+    @Test
+    public void givenValidId_whenGetImageContentResponse_thenReturnsImageContentResponse() {
+        long id = 1;
+        Image image = new Image();
+        image.setPath("path");
+        image.setName("name");
+        image.setType("plain/text");
+        Resource resource = mock();
+
+        when(imageRepository.findById(id)).thenReturn(Optional.of(image));
+        when(fileService.getFile(image.getPath())).thenReturn(resource);
+
+        ImageContentResponse serviceResponse = imageService.getImageContent(id);
+
+        verify(imageRepository).findById(id);
+        verify(fileService).getFile(image.getPath());
+
+        assertNotNull(serviceResponse);
+        assertEquals(image.getName(), serviceResponse.getFileName());
+        assertEquals(MediaType.parseMediaType(image.getType()), serviceResponse.getContentType());
+        assertEquals(resource, serviceResponse.getContent());
+    }
+
+    @Test
+    public void givenInvalidId_whenGetImageContentResponse_thenThrowsEntityNotFoundException() {
+        long id = 1;
+
+        when(imageRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> imageService.getImageContent(id));
+
+        verify(imageRepository).findById(id);
+    }
+
+    @Test
+    public void givenValidId_whenGetImageContent_thenReturnsImageContentResponse() {
+        long id = 1;
+        Image image = new Image();
+        image.setPath("path");
+        image.setName("name");
+        image.setType("plain/text");
+        Resource resource = mock();
+
+        when(imageRepository.findById(id)).thenReturn(Optional.of(image));
+        when(fileService.getFile(image.getPath())).thenReturn(resource);
+
+        ImageContentResponse serviceResponse = imageService.getImageContent(id);
+
+        verify(imageRepository).findById(id);
+        verify(fileService).getFile(image.getPath());
+
+        assertNotNull(serviceResponse);
+        assertEquals(image.getName(), serviceResponse.getFileName());
+        assertEquals(MediaType.parseMediaType(image.getType()), serviceResponse.getContentType());
+        assertEquals(resource, serviceResponse.getContent());
+    }
+
+    @Test
+    public void givenInvalidId_whenGetImageContent_thenThrowsEntityNotFoundException() {
+        long id = 1;
+
+        when(imageRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> imageService.getImageContent(id));
+
+        verify(imageRepository).findById(id);
     }
 }

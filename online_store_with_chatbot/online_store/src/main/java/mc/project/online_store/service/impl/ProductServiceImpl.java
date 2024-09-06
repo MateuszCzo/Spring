@@ -6,6 +6,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.ProductRequest;
+import mc.project.online_store.dto.response.CartProductResponse;
+import mc.project.online_store.dto.response.OrderProductResponse;
 import mc.project.online_store.dto.response.ProductResponse;
 import mc.project.online_store.exception.RelationConflictException;
 import mc.project.online_store.model.*;
@@ -30,7 +32,9 @@ public class ProductServiceImpl implements ProductService, mc.project.online_sto
     private final ManufacturerRepository manufacturerRepository;
     private final AttachmentRepository attachmentRepository;
     private final AttributeRepository attributeRepository;
+    private final OrderProductRepository orderProductRepository;
     private final CartRepository cartRepository;
+    private final CartProductRepository cartProductRepository;
     private final ObjectMapper objectMapper;
     private final ImageService imageService;
     private final UserService userService;
@@ -41,16 +45,6 @@ public class ProductServiceImpl implements ProductService, mc.project.online_sto
                 name, PageRequest.of(page, pageSize));
 
         return products
-                .map(product -> objectMapper.convertValue(product, ProductResponse.class))
-                .toList();
-    }
-
-    @Override
-    public List<ProductResponse> getPageByOrderId(long orderId, int page, int pageSize) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(EntityNotFoundException::new);
-
-        return order.getProducts().stream()
                 .map(product -> objectMapper.convertValue(product, ProductResponse.class))
                 .toList();
     }
@@ -148,29 +142,57 @@ public class ProductServiceImpl implements ProductService, mc.project.online_sto
         productRepository.delete(product);
     }
 
+    public List<OrderProductResponse> getOrderProductList(Order order) {
+        Set<OrderProduct> orderProducts = orderProductRepository.findByOrder(order);
+
+        return orderProducts.stream()
+                .map(orderProduct -> {
+                    OrderProductResponse response = objectMapper.convertValue(orderProduct, OrderProductResponse.class);
+                    response.setProductResponse(objectMapper.convertValue(orderProduct.getProduct(), ProductResponse.class));
+                    return response;
+                })
+                .toList();
+    }
+
     @Override
-    public List<ProductResponse> getUserOrderProduct(long orderId) {
+    public List<OrderProductResponse> getOrderProductList(long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        return getOrderProductList(order);
+    }
+
+    @Override
+    public List<OrderProductResponse> getUserOrderProductList(long orderId) {
         User user = userService.getLoggedInUser()
                 .orElseThrow(EntityNotFoundException::new);
 
         Order order = orderRepository.findByIdAndUser(orderId, user)
                 .orElseThrow(EntityNotFoundException::new);
 
-        return order.getProducts().stream()
-                .map(product -> objectMapper.convertValue(product, ProductResponse.class))
+        return getOrderProductList(order);
+    }
+
+    public List<CartProductResponse> getCartProductList(Cart cart) {
+        Set<CartProduct> cartProducts = cartProductRepository.findByCart(cart);
+
+        return cartProducts.stream()
+                .map(cartProduct -> {
+                    CartProductResponse response = objectMapper.convertValue(cartProduct, CartProductResponse.class);
+                    response.setProductResponse(objectMapper.convertValue(cartProduct.getProduct(), ProductResponse.class));
+                    return response;
+                })
                 .toList();
     }
 
     @Override
-    public List<ProductResponse> getUserCartProduct() {
+    public List<CartProductResponse> getUserCartProductList() {
         User user = userService.getLoggedInUser()
                 .orElseThrow(EntityNotFoundException::new);
 
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(EntityNotFoundException::new);
 
-        return cart.getProducts().stream()
-                .map(product -> objectMapper.convertValue(product, ProductResponse.class))
-                .toList();
+        return getCartProductList(cart);
     }
 }

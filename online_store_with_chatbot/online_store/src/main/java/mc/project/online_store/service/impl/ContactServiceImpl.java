@@ -7,10 +7,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.ContactRequest;
 import mc.project.online_store.dto.response.ContactResponse;
+import mc.project.online_store.exception.RelationConflictException;
 import mc.project.online_store.model.Address;
 import mc.project.online_store.model.Contact;
 import mc.project.online_store.model.User;
 import mc.project.online_store.repository.ContactRepository;
+import mc.project.online_store.repository.OrderRepository;
 import mc.project.online_store.repository.UserRepository;
 import mc.project.online_store.service.admin.ContactService;
 import mc.project.online_store.service.auth.UserService;
@@ -25,6 +27,7 @@ import java.util.List;
 public class ContactServiceImpl implements ContactService, mc.project.online_store.service.front.ContactService {
     private final ContactRepository contactRepository;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper;
     private final UserService userService;
 
@@ -72,6 +75,12 @@ public class ContactServiceImpl implements ContactService, mc.project.online_sto
     }
 
     public ContactResponse putContact(Contact contact, ContactRequest request) {
+        int orderCount = orderRepository.countDistinctByContact(contact);
+
+        if (orderCount > 0) {
+            throw new RelationConflictException("Cannot change contact - contact contains order");
+        }
+
         try {
             contact = objectMapper.updateValue(contact, request);
         } catch (JsonMappingException e) { }

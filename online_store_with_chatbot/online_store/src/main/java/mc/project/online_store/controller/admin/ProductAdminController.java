@@ -5,7 +5,9 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.ProductRequest;
+import mc.project.online_store.dto.response.OrderProductResponse;
 import mc.project.online_store.dto.response.ProductResponse;
+import mc.project.online_store.model.OrderProduct;
 import mc.project.online_store.service.admin.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,17 +27,6 @@ public class ProductAdminController {
             @RequestParam(name = "pageSize", defaultValue = "10") @Min(1) @Max(100) int pageSize) {
 
         List<ProductResponse> response = productService.getPage(name, page, pageSize);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/order/{id}/product")
-    public ResponseEntity<List<ProductResponse>> getPageByOrderId(
-            @PathVariable(name = "id") long orderId,
-            @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
-            @RequestParam(name = "pageSize", defaultValue = "10") @Min(1) @Max(100) int pageSize) {
-
-        List<ProductResponse> response = productService.getPageByOrderId(orderId, page, pageSize);
 
         return ResponseEntity.ok(response);
     }
@@ -84,5 +75,14 @@ public class ProductAdminController {
             @PathVariable(name = "id") long id) {
 
         productService.deleteProduct(id);
+    }
+
+    @GetMapping("/order/{id}/product")
+    public ResponseEntity<List<OrderProductResponse>> getOrderProductList(
+            @PathVariable(name = "id") long orderId) {
+
+        List<OrderProductResponse> response = productService.getOrderProductList(orderId);
+
+        return ResponseEntity.ok(response);
     }
 }

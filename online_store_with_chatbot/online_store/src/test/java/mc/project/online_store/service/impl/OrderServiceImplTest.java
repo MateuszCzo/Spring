@@ -1,6 +1,5 @@
 package mc.project.online_store.service.impl;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import mc.project.online_store.dto.request.OrderRequest;
@@ -8,8 +7,10 @@ import mc.project.online_store.dto.response.OrderResponse;
 import mc.project.online_store.model.*;
 import mc.project.online_store.repository.*;
 import mc.project.online_store.service.auth.UserService;
+import mc.project.online_store.service.util.PriceCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -33,7 +34,9 @@ class OrderServiceImplTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private ProductRepository productRepository;
+    private CartRepository cartRepository;
+    @Mock
+    private CartProductRepository cartProductRepository;
     @Mock
     private PaymentRepository paymentRepository;
     @Mock
@@ -43,9 +46,13 @@ class OrderServiceImplTest {
     @Mock
     private ContactRepository contactRepository;
     @Mock
+    private OrderProductRepository orderProductRepository;
+    @Mock
     private ObjectMapper objectMapper;
     @Mock
     private UserService userService;
+    @Mock
+    private PriceCalculator priceCalculator;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -138,45 +145,6 @@ class OrderServiceImplTest {
         assertThrows(EntityNotFoundException.class, () -> orderService.getOrder(id));
 
         verify(orderRepository).findById(id);
-    }
-
-    @Test
-    public void givenValidIdAndOrderRequest_whenPutOrder_thenReturnsOrderResponse() throws JsonMappingException {
-        long id = 1;
-        OrderRequest request = new OrderRequest();
-        request.setProductIds(new HashSet<>(List.of(2L)));
-        Product product = new Product();
-        product.setPrice(3);
-        Set<Product> productSet = new HashSet<>(List.of(product));
-        Order order = mock();
-        OrderResponse response = new OrderResponse();
-
-        when(productRepository.findByIdIn(request.getProductIds())).thenReturn(productSet);
-        when(orderRepository.findById(id)).thenReturn(Optional.of(order));
-        when(objectMapper.updateValue(order, request)).thenReturn(order);
-        when(objectMapper.convertValue(order, OrderResponse.class)).thenReturn(response);
-
-        OrderResponse serviceResponse = orderService.putOrder(id, request);
-
-        verify(productRepository).findByIdIn(request.getProductIds());
-        verify(orderRepository).findById(id);
-        verify(objectMapper).updateValue(order, request);
-        verify(order).setProducts(productSet);
-        verify(order).setPrice(product.getPrice());
-
-        assertEquals(response, serviceResponse);
-    }
-
-    @Test
-    public void givenInvalidOrderRequest_whenPutOrder_thenThrowsEntityNotFoundException() {
-        long id = 1;
-        OrderRequest request = new OrderRequest();
-
-        when(orderRepository.findById(id)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> orderService.putOrder(id, request));
-
-        verify(orderRepository, never()).save(any());
     }
 
     @Test
@@ -285,49 +253,70 @@ class OrderServiceImplTest {
     @Test
     public void givenValidOrderRequest_whenPostUserOrder_thenReturnsOrderResponse() {
         OrderRequest request = new OrderRequest();
-        request.setAddressId(1);
-        request.setProductIds(new HashSet<>(List.of(2L)));
-        request.setContactId(3);
-        request.setDeliveryId(4);
-        request.setPaymentId(5);
+        request.setPaymentId(1);
+        request.setDeliveryId(2);
+        request.setAddressId(3);
+        request.setContactId(4);
         User user = new User();
-        Order order = mock();
+        Cart cart = mock();
         Product product = new Product();
-        product.setPrice(6);
-        Set<Product> productSet = new HashSet<>(List.of(product));
+        product.setActive(true);
+        product.setQuantity(6);
+        product.setPrice(7);
+        CartProduct cartProduct = new CartProduct();
+        cartProduct.setCart(cart);
+        cartProduct.setProduct(product);
+        cartProduct.setQuantity(5);
+        Set<CartProduct> cartProductSet = new HashSet<>(List.of(cartProduct));
+        Order order = mock();
         Payment payment = new Payment();
         Delivery delivery = new Delivery();
         Address address = new Address();
         Contact contact = new Contact();
+        OrderProduct orderProduct = new OrderProduct();
         OrderResponse response = new OrderResponse();
+        float finalPrice = 8f;
+
+        ArgumentCaptor<List<OrderProduct>> orderProductSetCaptor = ArgumentCaptor.forClass(List.class);
 
         when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
-        when(objectMapper.convertValue(request, Contact.class)).thenReturn(contact);
-        when(productRepository.findByIdIn(request.getProductIds())).thenReturn(productSet);
+        when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
+        when(cartProductRepository.findByCart(cart)).thenReturn(cartProductSet);
+        when(objectMapper.convertValue(request, Order.class)).thenReturn(order);
         when(paymentRepository.findById(request.getPaymentId())).thenReturn(Optional.of(payment));
         when(deliveryRepository.findById(request.getDeliveryId())).thenReturn(Optional.of(delivery));
         when(addressRepository.findByIdAndUser(request.getAddressId(), user)).thenReturn(Optional.of(address));
         when(contactRepository.findByIdAndUser(request.getContactId(), user)).thenReturn(Optional.of(contact));
+        when(objectMapper.convertValue(cartProduct, OrderProduct.class)).thenReturn(orderProduct);
+        when(priceCalculator.calculate(any())).thenReturn(finalPrice);
         when(objectMapper.convertValue(order, OrderResponse.class)).thenReturn(response);
 
         OrderResponse serviceResponse = orderService.postUserOrder(request);
 
         verify(userService).getLoggedInUser();
-        verify(objectMapper).convertValue(request, Contact.class);
-        verify(productRepository).findByIdIn(request.getProductIds());
+        verify(cartRepository).findByUser(user);
+        verify(cartProductRepository).findByCart(cart);
         verify(paymentRepository).findById(request.getPaymentId());
         verify(deliveryRepository).findById(request.getDeliveryId());
         verify(addressRepository).findByIdAndUser(request.getAddressId(), user);
         verify(contactRepository).findByIdAndUser(request.getContactId(), user);
+        verify(priceCalculator).calculate(any());
         verify(order).setUser(user);
-        verify(order).setProducts(productSet);
         verify(order).setPayment(payment);
         verify(order).setDelivery(delivery);
-        verify(order).setPrice(product.getPrice());
+        verify(order).setFinalPrice(finalPrice);
         verify(order).setContact(contact);
         verify(order).setAddress(address);
+        verify(order).setDate(any());
         verify(orderRepository).save(order);
+        verify(orderProductRepository).saveAll(orderProductSetCaptor.capture());
+        verify(cartProductRepository).deleteAll(cartProductSet);
+        verify(cartRepository).delete(cart);
 
         assertEquals(response, serviceResponse);
+        assertEquals(1, orderProductSetCaptor.getValue().size());
+        assertTrue(orderProductSetCaptor.getValue().contains(orderProduct));
     }
+
+    // I'm not checking all possible scenarios :)
 }

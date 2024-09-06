@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import mc.project.online_store.dto.request.ContactRequest;
 import mc.project.online_store.dto.response.ContactResponse;
+import mc.project.online_store.exception.RelationConflictException;
 import mc.project.online_store.model.Contact;
 import mc.project.online_store.model.User;
 import mc.project.online_store.repository.ContactRepository;
+import mc.project.online_store.repository.OrderRepository;
 import mc.project.online_store.repository.UserRepository;
 import mc.project.online_store.service.auth.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,8 @@ class ContactServiceImplTest {
     @Mock
     private UserRepository userRepository;
     @Mock
+    private OrderRepository orderRepository;
+    @Mock
     private ObjectMapper objectMapper;
     @Mock
     private UserService userService;
@@ -46,7 +50,7 @@ class ContactServiceImplTest {
 
 
     @Test
-    public void givenValidUserId_whenGetPage_thenReturnsContactResponseList() {
+    public void givenValidUserId_whenGetPageByUserId_thenReturnsContactResponseList() {
         long userId = 1;
         int page = 0;
         int pageSize = 10;
@@ -71,7 +75,7 @@ class ContactServiceImplTest {
     }
 
     @Test
-    public void givenInvalidUserId_whenGetPage_thenThrowsEntityExistsException() {
+    public void givenInvalidUserId_whenGetPageByUserId_thenThrowsEntityExistsException() {
         long userId = 1;
         int page = 0;
         int pageSize = 10;
@@ -153,12 +157,14 @@ class ContactServiceImplTest {
         ContactResponse response = new ContactResponse();
 
         when(contactRepository.findById(id)).thenReturn(Optional.of(contact));
+        when(orderRepository.countDistinctByContact(contact)).thenReturn(0);
         when(objectMapper.updateValue(contact, request)).thenReturn(contact);
         when(objectMapper.convertValue(contact, ContactResponse.class)).thenReturn(response);
 
         ContactResponse serviceResponse = contactService.putContact(id, request);
 
         verify(contactRepository).findById(id);
+        verify(orderRepository).countDistinctByContact(contact);
         verify(objectMapper).updateValue(contact, request);
         verify(contactRepository).save(contact);
 
@@ -176,6 +182,21 @@ class ContactServiceImplTest {
 
         verify(contactRepository).findById(id);
         verify(contactRepository, never()).save(any());
+    }
+
+    @Test
+    public void givenInvalidOrderCount_whenPutContact_thenThrowsRelationConflictException() {
+        long id = 1;
+        ContactRequest request = new ContactRequest();
+        Contact contact = new Contact();
+
+        when(contactRepository.findById(id)).thenReturn(Optional.of(contact));
+        when(orderRepository.countDistinctByContact(contact)).thenReturn(1);
+
+        assertThrows(RelationConflictException.class, () -> contactService.putContact(id, request));
+
+        verify(contactRepository).findById(id);
+        verify(orderRepository).countDistinctByContact(contact);
     }
 
     @Test
@@ -323,13 +344,15 @@ class ContactServiceImplTest {
 
         when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
         when(contactRepository.findByIdAndUser(id, user)).thenReturn(Optional.of(contact));
+        when(orderRepository.countDistinctByContact(contact)).thenReturn(0);
         when(objectMapper.updateValue(contact, request)).thenReturn(contact);
         when(objectMapper.convertValue(contact, ContactResponse.class)).thenReturn(response);
 
-        ContactResponse serviceResponse = contactService.putContact(id, request);
+        ContactResponse serviceResponse = contactService.putUserContact(id, request);
 
         verify(userService).getLoggedInUser();
         verify(contactRepository).findByIdAndUser(id, user);
+        verify(orderRepository).countDistinctByContact(contact);
         verify(objectMapper).updateValue(contact, request);
         verify(contactRepository).save(contact);
 
@@ -343,9 +366,10 @@ class ContactServiceImplTest {
 
         when(userService.getLoggedInUser()).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> contactService.putContact(id, request));
+        assertThrows(EntityNotFoundException.class, () -> contactService.putUserContact(id, request));
 
         verify(userService).getLoggedInUser();
+        verify(contactRepository, never()).save(any());
     }
 
     @Test
@@ -357,9 +381,29 @@ class ContactServiceImplTest {
         when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
         when(contactRepository.findByIdAndUser(id, user)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> contactService.putContact(id, request));
+        assertThrows(EntityNotFoundException.class, () -> contactService.putUserContact(id, request));
 
         verify(userService).getLoggedInUser();
+        verify(contactRepository, never()).save(any());
+    }
+
+    @Test
+    public void givenInvalidOrderCount_whenPutUserContact_thenReturnsContactResponse() throws JsonMappingException {
+        long id = 1;
+        ContactRequest request = new ContactRequest();
+        User user = new User();
+        Contact contact = new Contact();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(contactRepository.findByIdAndUser(id, user)).thenReturn(Optional.of(contact));
+        when(orderRepository.countDistinctByContact(contact)).thenReturn(1);
+
+        assertThrows(RelationConflictException.class, () -> contactService.putUserContact(id, request));
+
+        verify(userService).getLoggedInUser();
+        verify(contactRepository).findByIdAndUser(id, user);
+        verify(orderRepository).countDistinctByContact(contact);
+        verify(contactRepository, never()).save(any());
     }
 
     @Test

@@ -19,4 +19,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     int countDistinctByProducts(Product product);
 
     Optional<Order> findByIdAndUser(long id, User user);
+
+    int countDistinctByAddress(Address address);
+
+    int countDistinctByContact(Contact contact);
 }

@@ -1,5 +1,6 @@
 package mc.project.online_store.service.front;
 
+import mc.project.online_store.dto.response.ImageContentResponse;
 import mc.project.online_store.dto.response.ImageResponse;
 
 import java.util.List;
@@ -12,4 +13,6 @@ public interface ImageService {
     ImageResponse getProductImage(long productId);
 
     List<ImageResponse> getProductImages(long productId);
+
+    ImageContentResponse getImageContent(long id);
 }

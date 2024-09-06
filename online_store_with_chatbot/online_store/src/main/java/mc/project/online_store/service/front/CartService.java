@@ -1,9 +1,12 @@
 package mc.project.online_store.service.front;
 
 import mc.project.online_store.dto.request.CartProductRequest;
+import mc.project.online_store.dto.response.CartProductResponse;
 
 public interface CartService {
-    void postProduct(CartProductRequest request);
+    CartProductResponse postProduct(CartProductRequest request);
 
-    void deleteProduct(CartProductRequest request);
+    CartProductResponse putProduct(CartProductRequest request);
+
+    void deleteProduct(long id);
 }

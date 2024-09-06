@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import mc.project.online_store.dto.request.AddressRequest;
 import mc.project.online_store.dto.response.AddressResponse;
+import mc.project.online_store.exception.RelationConflictException;
 import mc.project.online_store.model.Address;
 import mc.project.online_store.model.User;
 import mc.project.online_store.repository.AddressRepository;
+import mc.project.online_store.repository.OrderRepository;
 import mc.project.online_store.repository.UserRepository;
 import mc.project.online_store.service.auth.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +33,8 @@ class AddressServiceImplTest {
     private AddressRepository addressRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private OrderRepository orderRepository;
     @Mock
     private ObjectMapper objectMapper;
     @Mock
@@ -146,13 +150,14 @@ class AddressServiceImplTest {
     }
 
     @Test
-    public void givenValidUserId_whenPutUserAddress_thenReturnsAddressResponse() throws JsonMappingException {
+    public void givenValidIdAndAddressRequest_whenPutAddress_thenReturnsAddressResponse() throws JsonMappingException {
         long id = 1;
         AddressRequest request = new AddressRequest();
         Address address = new Address();
         AddressResponse response = new AddressResponse();
 
         when(addressRepository.findById(id)).thenReturn(Optional.of(address));
+        when(orderRepository.countDistinctByAddress(address)).thenReturn(0);
         when(objectMapper.updateValue(address, request)).thenReturn(address);
         when(addressRepository.save(address)).thenReturn(address);
         when(objectMapper.convertValue(address, AddressResponse.class)).thenReturn(response);
@@ -160,6 +165,7 @@ class AddressServiceImplTest {
         AddressResponse serviceResponse = addressService.putAddress(id, request);
 
         verify(addressRepository).findById(id);
+        verify(orderRepository).countDistinctByAddress(address);
         verify(objectMapper).updateValue(address, request);
         verify(addressRepository).save(address);
 
@@ -167,7 +173,7 @@ class AddressServiceImplTest {
     }
 
     @Test
-    public void givenInvalidUserId_whenPutUserAddress_thenThrowsEntityNotFoundException() {
+    public void givenInvalidIdAndAddressRequest_whenPutAddress_thenThrowsEntityNotFoundException() {
         long id = 1;
         AddressRequest request = new AddressRequest();
 
@@ -177,6 +183,24 @@ class AddressServiceImplTest {
 
         verify(addressRepository).findById(id);
         verify(addressRepository, never()).save(any());
+    }
+
+    @Test
+    public void givenInvalidOrderCount_whenPutAddress_thenThrowsRelationConflictException() {
+        long id = 1;
+        AddressRequest request = new AddressRequest();
+        Address address = new Address();
+        AddressResponse response = new AddressResponse();
+
+        when(addressRepository.findById(id)).thenReturn(Optional.of(address));
+        when(orderRepository.countDistinctByAddress(address)).thenReturn(1);
+        when(objectMapper.convertValue(address, AddressResponse.class)).thenReturn(response);
+
+        assertThrows(RelationConflictException.class, () -> addressService.putAddress(id, request));
+
+        verify(addressRepository).findById(id);
+        verify(orderRepository).countDistinctByAddress(address);
+        verify(addressRepository, never()).save(address);
     }
 
     @Test
@@ -315,7 +339,7 @@ class AddressServiceImplTest {
     }
 
     @Test
-    public void givenValidIdAndAddressRequest_whenPutAddress_thenReturnsAddressResponse() throws JsonMappingException {
+    public void givenValidIdAndAddressRequest_whenPutUserAddress_thenReturnsAddressResponse() throws JsonMappingException {
         long id = 1;
         AddressRequest request = new AddressRequest();
         User user = new User();
@@ -324,6 +348,7 @@ class AddressServiceImplTest {
 
         when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
         when(addressRepository.findByIdAndUser(id, user)).thenReturn(Optional.of(address));
+        when(orderRepository.countDistinctByAddress(address)).thenReturn(0);
         when(objectMapper.updateValue(address, request)).thenReturn(address);
         when(objectMapper.convertValue(address, AddressResponse.class)).thenReturn(response);
 
@@ -331,6 +356,7 @@ class AddressServiceImplTest {
 
         verify(userService).getLoggedInUser();
         verify(addressRepository).findByIdAndUser(id, user);
+        verify(orderRepository).countDistinctByAddress(address);
         verify(objectMapper).updateValue(address, request);
         verify(addressRepository).save(address);
 
@@ -338,19 +364,20 @@ class AddressServiceImplTest {
     }
 
     @Test
-    public void givenInvalidUser_whenPutAddress_thenThrowsEntityNotFoundException() {
+    public void givenInvalidUser_whenPutUserAddress_thenThrowsEntityNotFoundException() {
         long id = 1;
         AddressRequest request = new AddressRequest();
 
         when(userService.getLoggedInUser()).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> addressService.putAddress(id, request));
+        assertThrows(EntityNotFoundException.class, () -> addressService.putUserAddress(id, request));
 
         verify(userService).getLoggedInUser();
+        verify(addressRepository, never()).save(any());
     }
 
     @Test
-    public void givenInvalidIdAndAddressRequest_whenPutAddress_thenThrowsEntityNotFoundException() {
+    public void givenInvalidIdAndAddressRequest_whenPutUserAddress_thenThrowsEntityNotFoundException() {
         long id = 1;
         AddressRequest request = new AddressRequest();
         User user = new User();
@@ -361,6 +388,26 @@ class AddressServiceImplTest {
         assertThrows(EntityNotFoundException.class, () -> addressService.putUserAddress(id, request));
 
         verify(addressRepository).findByIdAndUser(id, user);
+        verify(addressRepository, never()).save(any());
+    }
+
+    @Test
+    public void givenInvalidOrderCount_whenPutUserAddress_thenThrowsRelationConflictException() {
+        long id = 1;
+        AddressRequest request = new AddressRequest();
+        User user = new User();
+        Address address = new Address();
+
+        when(userService.getLoggedInUser()).thenReturn(Optional.of(user));
+        when(addressRepository.findByIdAndUser(id, user)).thenReturn(Optional.of(address));
+        when(orderRepository.countDistinctByAddress(address)).thenReturn(1);
+
+        assertThrows(RelationConflictException.class, () -> addressService.putUserAddress(id, request));
+
+        verify(userService).getLoggedInUser();
+        verify(addressRepository).findByIdAndUser(id, user);
+        verify(orderRepository).countDistinctByAddress(address);
+        verify(addressRepository, never()).save(any());
     }
 
     @Test

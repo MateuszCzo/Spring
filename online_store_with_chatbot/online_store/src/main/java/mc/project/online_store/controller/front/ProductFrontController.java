@@ -3,7 +3,8 @@ package mc.project.online_store.controller.front;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import mc.project.online_store.dto.response.OrderResponse;
+import mc.project.online_store.dto.response.CartProductResponse;
+import mc.project.online_store.dto.response.OrderProductResponse;
 import mc.project.online_store.dto.response.ProductResponse;
 import mc.project.online_store.service.front.ProductService;
 import org.springframework.http.ResponseEntity;
@@ -50,20 +51,19 @@ public class ProductFrontController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/user/order/{id}/product")
-    public ResponseEntity<List<ProductResponse>> getUserOrderProduct(
-            @PathVariable(name = "id") long orderId) {
-
-        List<ProductResponse> responses = productService.getUserOrderProduct(orderId);
+    @GetMapping("/user/cart/product")
+    public ResponseEntity<List<CartProductResponse>> getUserCartProductList() {
+        List<CartProductResponse> responses = productService.getUserCartProductList();
 
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/user/cart/product")
-    public ResponseEntity<List<ProductResponse>> getUserCartProduct() {
+    @GetMapping("/user/order/{id}/product")
+    public ResponseEntity<List<OrderProductResponse>> getUserOrderProductList(
+            @PathVariable(name = "id") long orderId) {
 
-        List<ProductResponse> responses = productService.getUserCartProduct();
+        List<OrderProductResponse> response = productService.getUserOrderProductList(orderId);
 
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(response);
     }
 }

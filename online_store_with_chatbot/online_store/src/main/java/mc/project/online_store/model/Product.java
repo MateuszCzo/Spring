@@ -32,7 +32,7 @@ public class Product {
     private String description;
 
     @Column(nullable = false)
-    private String quantity;
+    private int quantity;
 
     @Column(nullable = false)
     private float price;

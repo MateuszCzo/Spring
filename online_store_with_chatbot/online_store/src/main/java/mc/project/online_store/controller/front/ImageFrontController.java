@@ -1,10 +1,10 @@
 package mc.project.online_store.controller.front;
 
 import lombok.RequiredArgsConstructor;
-import mc.project.online_store.dto.response.CategoryResponse;
-import mc.project.online_store.dto.response.ImageResponse;
-import mc.project.online_store.dto.response.ManufacturerResponse;
+import mc.project.online_store.dto.response.*;
 import mc.project.online_store.service.front.ImageService;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,5 +52,17 @@ public class ImageFrontController {
         List<ImageResponse> responses = imageService.getProductImages(productId);
 
         return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/image/{id}/content")
+    public ResponseEntity<Resource> getImageContent(
+            @PathVariable(name = "id") long id) {
+
+        ImageContentResponse response = imageService.getImageContent(id);
+
+        return ResponseEntity.ok()
+                .contentType(response.getContentType())
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + response.getFileName() + "\"")
+                .body(response.getContent());
     }
 }

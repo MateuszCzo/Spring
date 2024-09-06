@@ -4,13 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.ImageRequest;
+import mc.project.online_store.dto.response.AttachmentContentResponse;
 import mc.project.online_store.dto.response.CategoryResponse;
+import mc.project.online_store.dto.response.ImageContentResponse;
 import mc.project.online_store.dto.response.ImageResponse;
 import mc.project.online_store.exception.RelationConflictException;
-import mc.project.online_store.model.Category;
-import mc.project.online_store.model.Image;
-import mc.project.online_store.model.Manufacturer;
-import mc.project.online_store.model.Product;
+import mc.project.online_store.model.*;
 import mc.project.online_store.repository.CategoryRepository;
 import mc.project.online_store.repository.ImageRepository;
 import mc.project.online_store.repository.ManufacturerRepository;
@@ -18,6 +17,8 @@ import mc.project.online_store.repository.ProductRepository;
 import mc.project.online_store.service.admin.ImageService;
 import mc.project.online_store.service.util.FileService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -155,5 +156,20 @@ public class ImageServiceImpl implements ImageService, mc.project.online_store.s
         return product.getImages().stream()
                 .map(image -> objectMapper.convertValue(image, ImageResponse.class))
                 .toList();
+    }
+
+    @Override
+    public ImageContentResponse getImageContent(long id) {
+        Image image = imageRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
+
+        Resource resource = fileService.getFile(image.getPath());
+
+        ImageContentResponse response = new ImageContentResponse();
+        response.setFileName(image.getName());
+        response.setContentType(MediaType.parseMediaType(image.getType()));
+        response.setContent(resource);
+
+        return response;
     }
 }

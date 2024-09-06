@@ -1,27 +1,10 @@
-test -
-    - contact getPageByUserId postContact putContact
-    - order getPageByUserId
-
-cart & order - product quantity
-
-front controllers, services, tests
-
-image controller - get content
-
-order check product quantity
-
 search filters
 
-register - send email
-
+register - send email (kafka/rabbitmq)
 user - change email & password
 
-OrderRequest - objects to id
+file service - return Optional.of(Resource.class)
 
-order - check if product is active
+add order status
 
-order - admin service - find payment & order put in order
-
-contact & address - can not be change when order is using it
-
-order - delete items in cart when user makes request
+front controllers - get active products only

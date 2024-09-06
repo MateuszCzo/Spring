@@ -3,8 +3,11 @@ package mc.project.online_store.controller.admin;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import mc.project.online_store.dto.request.ImageRequest;
+import mc.project.online_store.dto.response.ImageContentResponse;
 import mc.project.online_store.dto.response.ImageResponse;
 import mc.project.online_store.service.admin.ImageService;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,5 +43,17 @@ public class ImageAdminController {
             @PathVariable(name = "id") long id) {
 
         imageService.deleteProductImage(productId, id);
+    }
+
+    @GetMapping("/image/{id}/content")
+    public ResponseEntity<Resource> getImageContent(
+            @PathVariable(name = "id") long id) {
+
+        ImageContentResponse response = imageService.getImageContent(id);
+
+        return ResponseEntity.ok()
+                .contentType(response.getContentType())
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + response.getFileName() + "\"")
+                .body(response.getContent());
     }
 }

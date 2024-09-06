@@ -1,5 +1,7 @@
 package mc.project.online_store.service.front;
 
+import mc.project.online_store.dto.response.CartProductResponse;
+import mc.project.online_store.dto.response.OrderProductResponse;
 import mc.project.online_store.dto.response.ProductResponse;
 
 import java.util.List;
@@ -11,7 +13,7 @@ public interface ProductService {
 
     ProductResponse getProduct(long id);
 
-    List<ProductResponse> getUserOrderProduct(long orderId);
+    List<OrderProductResponse> getUserOrderProductList(long orderId);
 
-    List<ProductResponse> getUserCartProduct();
+    List<CartProductResponse> getUserCartProductList();
 }
