@@ -26,9 +26,17 @@ services:
     networks:
       - postgres
 
+  chatbot:
+    build: ./chatbot
+    ports:
+      - "5000:5000"
+    volumes:
+      - chatbot:/data/chatbot
+
 networks:
   postgres:
     driver: bridge
 
 volumes:
   postgres:
+  chatbot:
