@@ -53,16 +53,16 @@ def get_relevant_context(vault_content, user_input, model_name, embeddings, top_
     return relevant_context
 
 
-def gpt_chat(user_input, relevant_context):
+def gpt_chat(user_input, relevant_context, model_name):
     context_str = "\n".join(relevant_context)
     messages = [
         {"role": "system", "content": f"You are a helpful assistant in an online shop. Try to help the user find the best product, using this context:\n{context_str}"},
         {"role": "user", "content": user_input}
     ]
     response = client.chat.completions.create(
-        model="o1-preview",
-        messages=messages,
-        stream=False,
+        model = model_name,
+        messages = messages,
+        stream = False,
     )
     return response
 
@@ -70,6 +70,7 @@ def gpt_chat(user_input, relevant_context):
 app = Flask(__name__)
 
 context_model = "mxbai-embed-large"
+main_model = "gpt-3.5-turbo"
 file_name = "products.csv"
 file_content = open_file(file_name)
 file_embeddings = generate_embeddings(file_content, context_model)
@@ -82,11 +83,11 @@ def query():
 
     if not user_input:
         return jsonify({"error": "No query provided"}), 400
-    
+
     print(f"User input {user_input}")
     relevant_context = get_relevant_context(file_content, user_input, context_model, file_embeddings)
     print(f"Relevant content {relevant_context}")
-    response = gpt_chat(user_input, relevant_context)
+    response = gpt_chat(user_input, relevant_context, main_model)
     print(f"Response {response}")
     return jsonify({"response": response})
 
