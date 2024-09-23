@@ -10,7 +10,6 @@ curl -fsSL https://ollama.com/install.sh | sh
 
 ollama serve
 ollama pull mxbai-embed-large
-ollama pull llama3.1
 
 python3 -m venv chatbot-env
 source chatbot-env/bin/activate (run "deactivate" command to leave)
