@@ -6,10 +6,17 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
-client = OpenAI()
 
 load_dotenv()
-database_url = os.getenv('OPENAI_API_KEY')
+openai_api_key = os.getenv('OPENAI_API_KEY')
+project_id = os.getenv('PROJECT_ID')
+
+
+client = OpenAI(
+    api_key = openai_api_key,
+    project = project_id
+)
+
 
 def open_file(filepath):
     # with open(filepath, 'r', encoding='utf-8') as infile:
@@ -53,7 +60,7 @@ def gpt_chat(user_input, relevant_context):
         {"role": "user", "content": user_input}
     ]
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="o1-preview",
         messages=messages,
         stream=False,
     )
@@ -85,5 +92,3 @@ def query():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-

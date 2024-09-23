@@ -3,4 +3,4 @@ torch
 ollama
 numpy
 python-dotenv
-opena
+openai
